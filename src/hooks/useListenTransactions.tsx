@@ -111,14 +111,13 @@ interface ProcessingState {
 
 const DEFAULT_INITIAL_STEPS = 10;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function hasTypeID(obj: any): obj is { typeID: string } {
   return obj && typeof obj === "object" && "typeID" in obj;
 }
 
 const getInitialProcessingState = (
   totalSteps = DEFAULT_INITIAL_STEPS,
-  statusText = "Verifying Request",
+  statusText = "Verifying Request"
 ): ProcessingState => ({
   currentStep: 0,
   totalSteps,
@@ -138,7 +137,7 @@ const useListenTransaction = ({
   type: "bridge" | "swap" | "transfer" | "bridgeAndExecute";
 }) => {
   const [processing, setProcessing] = useState<ProcessingState>(() =>
-    getInitialProcessingState(),
+    getInitialProcessingState()
   );
   const [explorerURL, setExplorerURL] = useState<string | null>(null);
   const [explorerURLs, setExplorerURLs] = useState<{
@@ -164,14 +163,14 @@ const useListenTransaction = ({
         stepData: step,
       }));
       setProcessing(
-        getInitialProcessingState(swapSteps.length, "Preparing Swap"),
+        getInitialProcessingState(swapSteps.length, "Preparing Swap")
       );
       setProcessing((prev) => ({ ...prev, steps: initialSteps }));
 
       const handleSwapStepComplete = (stepData: SwapStep) => {
         setProcessing((prev) => {
           const stepIndex = swapSteps.findIndex(
-            (s) => s.typeID === stepData.type,
+            (s) => s.typeID === stepData.type
           );
 
           if (stepIndex === -1) {
@@ -231,11 +230,11 @@ const useListenTransaction = ({
 
     const processStep = (
       state: ProcessingState,
-      stepData: ProgressStep,
+      stepData: ProgressStep
     ): ProcessingState => {
       const { type: stepType, typeID, data } = stepData;
       let stepIndex = state.steps.findIndex(
-        (s) => hasTypeID(s.stepData) && s.stepData.typeID === typeID,
+        (s) => hasTypeID(s.stepData) && s.stepData.typeID === typeID
       );
 
       if (stepIndex === -1) {
