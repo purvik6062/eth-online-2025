@@ -11,6 +11,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useState,
 } from "react";
 import { useAccount } from "wagmi";
 
@@ -41,6 +42,7 @@ const NexusProvider = ({ children }: { children: React.ReactNode }) => {
     intentRefCallback,
     allowanceRefCallback,
   } = useInitNexus(sdk);
+  const [hookTick, setHookTick] = useState(0);
 
   const handleInit = useCallback(async () => {
     if (sdk.isInitialized()) {
@@ -48,7 +50,7 @@ const NexusProvider = ({ children }: { children: React.ReactNode }) => {
       return;
     }
     await initializeNexus();
-    attachEventHooks();
+    attachEventHooks(() => setHookTick((t) => t + 1));
   }, [sdk, attachEventHooks, initializeNexus]);
 
   useEffect(() => {
@@ -70,7 +72,7 @@ const NexusProvider = ({ children }: { children: React.ReactNode }) => {
       allowanceRefCallback,
       handleInit,
     }),
-    [nexusSDK, intentRefCallback, allowanceRefCallback, handleInit]
+    [nexusSDK, intentRefCallback, allowanceRefCallback, handleInit, hookTick]
   );
 
   return (

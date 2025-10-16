@@ -323,12 +323,13 @@ const useListenTransaction = ({
         setProcessing((prev) => processStep(prev, stepData));
       }
 
+      // Capture explorer URL from any step that provides it
       if (
-        stepData.typeID === "IS" &&
         stepData.data &&
+        typeof stepData.data === "object" &&
         "explorerURL" in stepData.data
       ) {
-        setExplorerURL(stepData.data.explorerURL as string);
+        setExplorerURL((stepData.data as any).explorerURL as string);
       }
     };
 

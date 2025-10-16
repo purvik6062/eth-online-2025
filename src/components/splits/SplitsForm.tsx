@@ -151,36 +151,21 @@ export default function SplitsForm() {
     console.log(`Total amount needed: ${totalAmountNeeded} ${token}`);
     console.log(`Number of recipients: ${entries.length}`);
 
-    // Check if we have enough balance on the source chain
+    // Validate against unified balance (chain-abstracted)
     try {
-      const unifiedBalance = await nexusSDK.getUnifiedBalances();
-      console.log("Unified Balance:", unifiedBalance);
-
-      // Find the token balance on the source chain
-      const tokenBalance = unifiedBalance?.find((t) => t.symbol === token);
-      const chainBalance = tokenBalance?.breakdown?.find(
-        (c) => c.chain.id === chain
-      );
-
-      if (chainBalance) {
-        const availableBalance = parseFloat(chainBalance.balance);
-        console.log(`Available ${token} on ${chain}: ${availableBalance}`);
-
-        if (availableBalance < totalAmountNeeded) {
-          const neededAmount = totalAmountNeeded - availableBalance;
-          setError(
-            `Insufficient balance on source chain. You have ${availableBalance} ${token} but need ${totalAmountNeeded} ${token}. ` +
-              `Your unified balance shows $${tokenBalance?.balanceInFiat?.toFixed(
-                2
-              )} worth of ${token} across all chains. ` +
-              `You need to bridge ${neededAmount} ${token} to ${chain}.`
-          );
-          return;
-        }
+      const unified = await nexusSDK.getUnifiedBalances();
+      const tokenBalance = unified?.find((t) => t.symbol === token);
+      const availableUnified = tokenBalance
+        ? parseFloat(tokenBalance.balance)
+        : 0;
+      if (availableUnified < totalAmountNeeded) {
+        setError(
+          `Insufficient unified balance for ${token}. You have ${availableUnified} ${token} across all chains but need ${totalAmountNeeded} ${token}.`
+        );
+        return;
       }
     } catch (balanceError) {
       console.log("Could not fetch unified balance:", balanceError);
-      // Continue with the transfer attempt
     }
 
     setSubmitting(true);
@@ -222,17 +207,7 @@ export default function SplitsForm() {
             await new Promise((resolve) => setTimeout(resolve, 1000));
           }
 
-          // Clear any previous transaction state before each transfer
-          console.log(
-            `Clearing previous transaction state for transfer ${i + 1}...`
-          );
-          // Reset any pending states or clear previous transaction data
-          if (intentRefCallback?.current) {
-            intentRefCallback.current = null;
-          }
-          if (allowanceRefCallback?.current) {
-            allowanceRefCallback.current = null;
-          }
+          // Keep previous refs to allow modals to render when hooks fire
 
           // Use direct transfer method
           const result = await nexusSDK.transfer({

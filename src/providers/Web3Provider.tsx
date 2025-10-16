@@ -23,11 +23,11 @@ const config = createConfig(
       polygonAmoy,
     ],
     transports: {
-      [sepolia.id]: http(sepolia.rpcUrls.default.http[0]),
-      [baseSepolia.id]: http(baseSepolia.rpcUrls.default.http[0]),
-      [arbitrumSepolia.id]: http(arbitrumSepolia.rpcUrls.default.http[0]),
-      [optimismSepolia.id]: http(optimismSepolia.rpcUrls.default.http[0]),
-      [polygonAmoy.id]: http(polygonAmoy.rpcUrls.default.http[0]),
+      [sepolia.id]: http(process.env.NEXT_PUBLIC_RPC_SEPOLIA!),
+      [baseSepolia.id]: http(process.env.NEXT_PUBLIC_RPC_BASE_SEPOLIA!),
+      [arbitrumSepolia.id]: http(process.env.NEXT_PUBLIC_RPC_ARBITRUM_SEPOLIA!),
+      [optimismSepolia.id]: http(process.env.NEXT_PUBLIC_RPC_OPTIMISM_SEPOLIA!),
+      [polygonAmoy.id]: http(process.env.NEXT_PUBLIC_RPC_POLYGON_AMOY!),
     },
 
     walletConnectProjectId: walletConnectProjectId!,

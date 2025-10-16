@@ -37,7 +37,7 @@ const useInitNexus = (sdk: NexusSDK) => {
     }
   };
 
-  const attachEventHooks = () => {
+  const attachEventHooks = (onUpdate?: () => void) => {
     sdk.setOnAllowanceHook((data: OnAllowanceHookData) => {
       // const { sources, allow, deny } = data;
       // This is a hook for the dev to show user the allowances that need to be setup for the current tx to happen
@@ -46,6 +46,7 @@ const useInitNexus = (sdk: NexusSDK) => {
       // allow(allowances): continues the transaction flow with the specified allowances; `allowances` is an array with the chosen allowance for each of the requirements (allowances.length === sources.length), either 'min', 'max', a bigint or a string
       // deny(): stops the flow
       allowanceRefCallback.current = data;
+      onUpdate?.();
     });
 
     sdk.setOnIntentHook((data: OnIntentHookData) => {
@@ -57,6 +58,7 @@ const useInitNexus = (sdk: NexusSDK) => {
       // deny(): deny the intent and stop the flow
       // refresh(): should be on a timer of 5s to refresh the intent (old intents might fail due to fee changes if not refreshed)
       intentRefCallback.current = data;
+      onUpdate?.();
     });
   };
 
