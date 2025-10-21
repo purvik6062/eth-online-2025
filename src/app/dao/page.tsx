@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useAccount } from 'wagmi';
 import { CheckCircle, XCircle, Clock, Eye, Shield, Users, Target, AlertCircle } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -8,88 +9,9 @@ import Card from '@/components/ui/card-new';
 import Button from '@/components/ui/button-new';
 import ProgressBar from '@/components/ui/ProgressBar';
 
-// Mock data for DAO verification
-const mockCampaigns = [
-  {
-    id: '1',
-    title: 'DeFi Protocol Upgrade',
-    creator: 'Alex Chen',
-    goal: 50000,
-    raised: 32500,
-    deadline: '2024-12-31',
-    status: 'pending_verification' as const,
-    milestones: [
-      {
-        id: '1',
-        title: 'Core Protocol Development',
-        description: 'Complete the basic protocol architecture and smart contracts',
-        amount: 15000,
-        deadline: '2024-03-31',
-        status: 'completed' as const,
-        verificationStatus: 'verified' as const,
-        submittedAt: '2024-03-25',
-        verifiedAt: '2024-03-28',
-        verifier: 'DAO Member #1',
-      },
-      {
-        id: '2',
-        title: 'Security Audits',
-        description: 'Conduct comprehensive security audits with leading firms',
-        amount: 20000,
-        deadline: '2024-06-30',
-        status: 'pending_verification' as const,
-        verificationStatus: 'pending' as const,
-        submittedAt: '2024-06-15',
-        verifiedAt: null,
-        verifier: null,
-      },
-    ],
-    documents: [
-      { name: 'Technical Specification', type: 'pdf', url: '#' },
-      { name: 'Security Audit Report', type: 'pdf', url: '#' },
-      { name: 'Code Repository', type: 'link', url: '#' },
-    ],
-  },
-  {
-    id: '2',
-    title: 'NFT Marketplace Launch',
-    creator: 'Sarah Kim',
-    goal: 75000,
-    raised: 75000,
-    deadline: '2024-11-15',
-    status: 'active' as const,
-    milestones: [
-      {
-        id: '1',
-        title: 'Smart Contract Development',
-        description: 'Develop and deploy marketplace smart contracts',
-        amount: 30000,
-        deadline: '2024-08-15',
-        status: 'completed' as const,
-        verificationStatus: 'verified' as const,
-        submittedAt: '2024-08-10',
-        verifiedAt: '2024-08-12',
-        verifier: 'DAO Member #2',
-      },
-      {
-        id: '2',
-        title: 'Frontend Development',
-        description: 'Build user interface and integrate with smart contracts',
-        amount: 25000,
-        deadline: '2024-10-15',
-        status: 'completed' as const,
-        verificationStatus: 'verified' as const,
-        submittedAt: '2024-10-10',
-        verifiedAt: '2024-10-12',
-        verifier: 'DAO Member #3',
-      },
-    ],
-    documents: [
-      { name: 'Smart Contract Code', type: 'link', url: '#' },
-      { name: 'Frontend Demo', type: 'link', url: '#' },
-      { name: 'User Testing Report', type: 'pdf', url: '#' },
-    ],
-  },
+// Static DAO member addresses - add your DAO member addresses here
+const DAO_MEMBER_ADDRESSES = [
+  "0xB351a70dD6E5282A8c84edCbCd5A955469b9b032"
 ];
 
 const mockDaoStats = {
@@ -101,6 +23,69 @@ const mockDaoStats = {
 
 export default function DAOPage() {
   const [filter, setFilter] = useState<'all' | 'pending' | 'verified' | 'rejected'>('all');
+  const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { address } = useAccount();
+
+  // Check if current address is a DAO member
+  const isDaoMember = address ? DAO_MEMBER_ADDRESSES.includes(address) : false;
+
+  useEffect(() => {
+    fetchDAOCampaigns();
+  }, []);
+
+  const fetchDAOCampaigns = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/dao');
+      const result = await response.json();
+
+      if (result.success) {
+        setCampaigns(result.data);
+      } else {
+        setError(result.error);
+      }
+    } catch (err) {
+      setError('Failed to fetch DAO campaigns');
+      console.error('Error fetching DAO campaigns:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerify = async (campaignId: string, action: 'approve' | 'reject') => {
+    try {
+      if (!address) {
+        alert('Connect wallet to proceed');
+        return;
+      }
+      const response = await fetch('/api/dao/verify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          campaignId,
+          action,
+          verifierId: address,
+          comments: action === 'reject' ? 'Please provide more details about your project' : ''
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert(result.message);
+        fetchDAOCampaigns(); // Refresh the list
+      } else {
+        alert(`Error: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error verifying campaign:', error);
+      alert('Failed to verify campaign. Please try again.');
+    }
+  };
 
   const formatAmount = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -111,22 +96,47 @@ export default function DAOPage() {
     }).format(amount);
   };
 
-  const handleVerify = (campaignId: string, milestoneId: string) => {
-    // In a real app, this would make an API call
-    console.log('Verifying milestone:', campaignId, milestoneId);
-  };
 
-  const handleReject = (campaignId: string, milestoneId: string) => {
-    // In a real app, this would make an API call
-    console.log('Rejecting milestone:', campaignId, milestoneId);
-  };
-
-  const filteredCampaigns = mockCampaigns.filter(campaign => {
+  const filteredCampaigns = campaigns.filter(campaign => {
     if (filter === 'all') return true;
     if (filter === 'pending') return campaign.status === 'pending_verification';
-    if (filter === 'verified') return campaign.status === 'active';
+    if (filter === 'verified') return campaign.status === 'approved';
     return false;
   });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="py-8 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-4 text-foreground/70">Loading DAO campaigns...</p>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="py-8 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center py-12">
+              <p className="text-red-500 mb-4">Error: {error}</p>
+              <Button onClick={fetchDAOCampaigns}>Try Again</Button>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -191,9 +201,9 @@ export default function DAOPage() {
           {/* Filter Tabs */}
           <div className="flex space-x-4 mb-6">
             {[
-              { key: 'all', label: 'All Campaigns', count: mockCampaigns.length },
-              { key: 'pending', label: 'Pending', count: mockCampaigns.filter(c => c.status === 'pending_verification').length },
-              { key: 'verified', label: 'Verified', count: mockCampaigns.filter(c => c.status === 'active').length },
+              { key: 'all', label: 'All Campaigns', count: campaigns.length },
+              { key: 'pending', label: 'Pending', count: campaigns.filter(c => c.status === 'pending_verification').length },
+              { key: 'verified', label: 'Verified', count: campaigns.filter(c => c.status === 'approved').length },
             ].map((tab) => (
               <button
                 key={tab.key}
@@ -211,11 +221,11 @@ export default function DAOPage() {
           {/* Campaigns List */}
           <div className="space-y-6">
             {filteredCampaigns.map((campaign) => (
-              <Card key={campaign.id}>
+              <Card key={campaign.campaignId}>
                 <div className="flex items-start justify-between mb-6">
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold text-foreground mb-2">{campaign.title}</h3>
-                    <p className="text-foreground/70 mb-4">by {campaign.creator}</p>
+                    <h3 className="text-xl font-bold text-foreground mb-2">{campaign.name}</h3>
+                    <p className="text-foreground/70 mb-4">by {campaign.userAddress}</p>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                       <div>
@@ -249,80 +259,52 @@ export default function DAOPage() {
                   </div>
                 </div>
 
-                {/* Milestones */}
-                <div className="space-y-4">
-                  <h4 className="font-semibold text-foreground">Milestones</h4>
-                  {campaign.milestones.map((milestone) => (
-                    <div key={milestone.id} className="border-2 border-foreground/20 rounded-lg p-4">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <h5 className="font-medium text-foreground mb-1">{milestone.title}</h5>
-                          <p className="text-sm text-foreground/70 mb-2">{milestone.description}</p>
-                          <div className="flex items-center space-x-4 text-sm text-foreground/60">
-                            <span>{formatAmount(milestone.amount)}</span>
-                            <span>Due: {milestone.deadline}</span>
-                            <span>Submitted: {milestone.submittedAt}</span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center space-x-2 ml-4">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${milestone.verificationStatus === 'verified'
-                            ? 'bg-green-100 text-green-800'
-                            : milestone.verificationStatus === 'pending'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-red-100 text-red-800'
-                            }`}>
-                            {milestone.verificationStatus}
-                          </span>
-
-                          {milestone.verificationStatus === 'pending' && (
-                            <div className="flex space-x-1">
-                              <Button
-                                size="sm"
-                                onClick={() => handleVerify(campaign.id, milestone.id)}
-                                className="bg-green-500 hover:bg-green-600 text-white"
-                              >
-                                <CheckCircle className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleReject(campaign.id, milestone.id)}
-                                className="border-red-500 text-red-500 hover:bg-red-50"
-                              >
-                                <XCircle className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Documents */}
-                      <div className="mt-3">
-                        <p className="text-sm text-foreground/70 mb-2">Documents:</p>
-                        <div className="flex flex-wrap gap-2">
-                          {campaign.documents.map((doc, index) => (
-                            <a
-                              key={index}
-                              href={doc.url}
-                              className="inline-flex items-center px-3 py-1 bg-secondary text-foreground text-sm rounded-full hover:bg-secondary/80 transition-colors"
-                            >
-                              <Eye className="w-3 h-3 mr-1" />
-                              {doc.name}
-                            </a>
-                          ))}
-                        </div>
-                      </div>
-
-                      {milestone.verifiedAt && (
-                        <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                          <p className="text-sm text-green-800">
-                            <strong>Verified by:</strong> {milestone.verifier} on {milestone.verifiedAt}
-                          </p>
-                        </div>
+                {/* Campaign Actions */}
+                <div className="mt-6 pt-4 border-t border-foreground/20">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${campaign.status === 'pending_verification'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : campaign.status === 'approved'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                        }`}>
+                        {campaign.status.replace('_', ' ').toUpperCase()}
+                      </span>
+                      {campaign.daoVerificationRequired && (
+                        <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                          DAO Required
+                        </span>
                       )}
                     </div>
-                  ))}
+
+                    {campaign.status === 'pending_verification' && isDaoMember && (
+                      <div className="flex space-x-2">
+                        <Button
+                          size="sm"
+                          onClick={() => handleVerify(campaign.campaignId, 'approve')}
+                          className="cursor-pointer"
+                        >   
+                          <CheckCircle className="w-4 h-4 mr-1" />
+                          Approve
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleVerify(campaign.campaignId, 'reject')}
+                          className="cursor-pointer"
+                        >
+                          <XCircle className="w-4 h-4 mr-1" />
+                          Reject
+                        </Button>
+                      </div>
+                    )}
+                    {campaign.status === 'pending_verification' && !isDaoMember && (
+                      <div className="text-sm text-foreground/60">
+                        Only DAO members can approve/reject
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Action Buttons */}

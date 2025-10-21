@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Upload, Calendar, DollarSign, Users, Target, FileText, X } from 'lucide-react';
+import { Upload, Calendar, DollarSign, Users, Target, FileText, X, Loader2 } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Card from '@/components/ui/card-new';
 import Button from '@/components/ui/button-new';
+import { useAccount } from 'wagmi';
+import { toast } from 'react-toastify';
 
 interface Milestone {
   id: string;
@@ -23,6 +25,8 @@ interface TeamMember {
 }
 
 export default function CreateCampaign() {
+  const { address } = useAccount();
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -102,15 +106,61 @@ export default function CreateCampaign() {
     }
   };
 
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      description: '',
+      goal: '',
+      deadline: '',
+      chain: 'ethereum',
+      image: null,
+      documents: [],
+    });
+    setMilestones([{ id: '1', title: '', description: '', amount: 0, deadline: '' }]);
+    setTeamMembers([{ id: '1', name: '', wallet: '', percentage: 0 }]);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     setIsSubmitting(true);
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    try {
+      const campaignData = {
+        name: formData.name,
+        description: formData.description,
+        goal: Number(formData.goal),
+        deadline: formData.deadline,
+        chain: formData.chain,
+        image: formData.image?.name || '',
+        documents: formData.documents.map(doc => doc.name),
+        milestones: milestones.filter(m => m.title && m.description),
+        teamMembers: teamMembers.filter(m => m.name && m.wallet),
+        userAddress: address
+      };
 
-    setIsSubmitting(false);
-    // Handle success - redirect to campaign page
+      const response = await fetch('/api/campaigns', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(campaignData),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success(result.message);
+        resetForm();
+      } else {
+        toast.error('Creation Failed', result.error);
+      }
+    } catch (err) {
+      console.error('Error creating campaign:', err);
+      toast.error('Creation Failed. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -123,7 +173,7 @@ export default function CreateCampaign() {
             <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
               Create Your Campaign
             </h1>
-            <p className="text-lg text-foreground/70 max-w-2xl mx-auto">
+            <p className="text-lg text-foreground/70 max-w-2xl mx-auto mb-6">
               Launch your project with transparent, automated funding across multiple blockchains
             </p>
           </div>
@@ -174,7 +224,7 @@ export default function CreateCampaign() {
                     <input
                       type="number"
                       required
-                      min="1000"
+                      min={1000}
                       value={formData.goal}
                       onChange={(e) => handleInputChange('goal', e.target.value)}
                       className="w-full input-neobrutal"
@@ -223,7 +273,7 @@ export default function CreateCampaign() {
                   <Target className="w-6 h-6 mr-3" />
                   Milestones
                 </h2>
-                <Button type="button" variant="outline" onClick={addMilestone}>
+                <Button type="button" variant="outline" onClick={addMilestone} className="cursor-pointer">
                   Add Milestone
                 </Button>
               </div>
@@ -239,6 +289,7 @@ export default function CreateCampaign() {
                           variant="ghost"
                           size="sm"
                           onClick={() => removeMilestone(milestone.id)}
+                          className="cursor-pointer"
                         >
                           <X className="w-4 h-4" />
                         </Button>
@@ -308,7 +359,7 @@ export default function CreateCampaign() {
                   <Users className="w-6 h-6 mr-3" />
                   Team & Fund Distribution
                 </h2>
-                <Button type="button" variant="outline" onClick={addTeamMember}>
+                <Button type="button" variant="outline" onClick={addTeamMember} className="cursor-pointer">
                   Add Member
                 </Button>
               </div>
@@ -324,6 +375,7 @@ export default function CreateCampaign() {
                           variant="ghost"
                           size="sm"
                           onClick={() => removeTeamMember(member.id)}
+                          className="cursor-pointer"
                         >
                           <X className="w-4 h-4" />
                         </Button>
@@ -397,8 +449,8 @@ export default function CreateCampaign() {
                       className="hidden"
                       id="image-upload"
                     />
-                    <label htmlFor="image-upload">
-                      <Button type="button" variant="outline">
+                    <label htmlFor="image-upload" className="cursor-pointer">
+                      <Button type="button" variant="outline" className="cursor-pointer">
                         Choose File
                       </Button>
                     </label>
@@ -429,8 +481,8 @@ export default function CreateCampaign() {
                       className="hidden"
                       id="docs-upload"
                     />
-                    <label htmlFor="docs-upload">
-                      <Button type="button" variant="outline">
+                    <label htmlFor="docs-upload" className="cursor-pointer">
+                      <Button type="button" variant="outline" className="cursor-pointer">
                         Choose Files
                       </Button>
                     </label>
@@ -451,11 +503,17 @@ export default function CreateCampaign() {
               <Button
                 type="submit"
                 size="lg"
-                loading={isSubmitting}
                 disabled={isSubmitting}
-                className="px-12"
+                className="px-12 cursor-pointer disabled:cursor-not-allowed"
               >
-                {isSubmitting ? 'Creating Campaign...' : 'Create Campaign'}
+                {isSubmitting ? (
+                  <div className="flex items-center justify-center">
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Creating Campaign...
+                  </div>
+                ) : (
+                  'Create Campaign'
+                )}
               </Button>
             </div>
           </form>

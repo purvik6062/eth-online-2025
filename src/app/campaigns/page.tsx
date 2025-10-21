@@ -1,85 +1,29 @@
-import { Search, Filter, ArrowRight } from 'lucide-react';
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Search, Filter, ArrowRight, Clock, Shield } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Card from '@/components/ui/card-new';
 import Button from '@/components/ui/button-new';
 import CampaignCard from '@/components/campaign/CampaignCard';
 
-// Mock data - in a real app, this would come from an API
-const mockCampaigns = [
-  {
-    id: '1',
-    title: 'DeFi Protocol Upgrade',
-    description: 'Building the next generation of decentralized finance with cross-chain compatibility and enhanced security features.',
-    image: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=500&h=300&fit=crop',
-    goal: 50000,
-    raised: 32500,
-    deadline: '2024-12-31',
-    backers: 127,
-    chain: 'Ethereum',
-    status: 'active' as const,
-  },
-  {
-    id: '2',
-    title: 'NFT Marketplace Launch',
-    description: 'Creating a revolutionary NFT marketplace with zero-fee trading and cross-chain support.',
-    image: 'https://images.unsplash.com/photo-1639322537504-6427a16b612b786?w=500&h=300&fit=crop',
-    goal: 75000,
-    raised: 75000,
-    deadline: '2024-11-15',
-    backers: 89,
-    chain: 'Polygon',
-    status: 'completed' as const,
-  },
-  {
-    id: '3',
-    title: 'Gaming DAO Infrastructure',
-    description: 'Developing infrastructure for gaming DAOs with automated governance and reward distribution.',
-    image: 'https://images.unsplash.com/photo-1556438064-2d7646166914?w=500&h=300&fit=crop',
-    goal: 100000,
-    raised: 45000,
-    deadline: '2025-01-20',
-    backers: 203,
-    chain: 'Arbitrum',
-    status: 'active' as const,
-  },
-  {
-    id: '4',
-    title: 'Cross-Chain Bridge Protocol',
-    description: 'Building a secure and efficient bridge for seamless asset transfers across multiple blockchains.',
-    image: 'https://images.unsplash.com/photo-1639322537504-6427a16b612b786?w=500&h=300&fit=crop',
-    goal: 120000,
-    raised: 85000,
-    deadline: '2025-02-28',
-    backers: 156,
-    chain: 'Ethereum',
-    status: 'active' as const,
-  },
-  {
-    id: '5',
-    title: 'Decentralized Social Media',
-    description: 'Creating a censorship-resistant social media platform with user-owned data and content.',
-    image: 'https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=500&h=300&fit=crop',
-    goal: 80000,
-    raised: 32000,
-    deadline: '2025-03-15',
-    backers: 78,
-    chain: 'Polygon',
-    status: 'active' as const,
-  },
-  {
-    id: '6',
-    title: 'AI-Powered DeFi Analytics',
-    description: 'Developing machine learning tools for DeFi risk assessment and yield optimization.',
-    image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=500&h=300&fit=crop',
-    goal: 60000,
-    raised: 60000,
-    deadline: '2024-10-30',
-    backers: 92,
-    chain: 'Arbitrum',
-    status: 'completed' as const,
-  },
-];
+interface Campaign {
+  campaignId: string;
+  name: string;
+  description: string;
+  image: string;
+  goal: number;
+  raised: number;
+  deadline: string;
+  backers: number;
+  chain: string;
+  status: 'active' | 'completed' | 'pending_verification' | 'rejected' | 'approved';
+  daoVerificationRequired: boolean;
+  isPublic: boolean;
+  createdAt: string;
+  creatorWalletAddress: string;
+}
 
 const categories = [
   'All',
@@ -101,6 +45,67 @@ const chains = [
 ];
 
 export default function CampaignsPage() {
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchCampaigns();
+  }, []);
+
+  const fetchCampaigns = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/campaigns');
+      const result = await response.json();
+
+      if (result.success) {
+        setCampaigns(result.data);
+      } else {
+        setError(result.error);
+      }
+    } catch (err) {
+      setError('Failed to fetch campaigns');
+      console.error('Error fetching campaigns:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="py-8 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-4 text-foreground/70">Loading campaigns...</p>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="py-8 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center py-12">
+              <p className="text-red-500 mb-4">Error: {error}</p>
+              <Button onClick={fetchCampaigns}>Try Again</Button>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -182,7 +187,7 @@ export default function CampaignsPage() {
           <div className="mb-8">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-foreground">
-                All Campaigns ({mockCampaigns.length})
+                All Campaigns ({campaigns.length})
               </h2>
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-foreground/70">Sort by:</span>
@@ -196,22 +201,43 @@ export default function CampaignsPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {mockCampaigns.map((campaign) => (
-                <CampaignCard key={campaign.id} campaign={campaign} />
+              {campaigns.map((campaign) => (
+                <div key={campaign.campaignId} className="relative">
+                  <CampaignCard
+                    campaign={{
+                      id: campaign.campaignId,
+                      title: campaign.name,
+                      description: campaign.description,
+                      image: campaign.image || 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=500&h=300&fit=crop',
+                      goal: campaign.goal,
+                      raised: campaign.raised,
+                      deadline: campaign.deadline,
+                      backers: campaign.backers,
+                      chain: campaign.chain,
+                      status: campaign.status as 'active' | 'completed' | 'cancelled'
+                    }}
+                  />
+                  {campaign.daoVerificationRequired && campaign.status === 'pending_verification' && (
+                    <div className="absolute top-2 right-2 bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium flex items-center">
+                      <Clock className="w-3 h-3 mr-1" />
+                      Pending DAO
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           </div>
 
           {/* Load More */}
-          <div className="text-center">
+          {/* <div className="text-center">
             <Button variant="outline" size="lg">
               Load More Campaigns
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
-          </div>
+          </div> */}
 
           {/* Stats Section */}
-          <div className="mt-16 py-12 gradient-primary text-white rounded-2xl">
+          {/* <div className="mt-16 py-12 gradient-primary text-white rounded-2xl">
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold mb-4">Platform Impact</h2>
               <p className="text-xl text-white/80">
@@ -237,7 +263,7 @@ export default function CampaignsPage() {
                 <div className="text-white/80">Supported Chains</div>
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
       </main>
 

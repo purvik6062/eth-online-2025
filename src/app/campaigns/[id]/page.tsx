@@ -1,100 +1,262 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Clock, Users, Target, ExternalLink, Share2, Heart, Shield, Zap, Globe } from 'lucide-react';
+import { Clock, Users, Target, ExternalLink, Share2, Heart, Shield, Zap, Globe, Loader2 } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Card from '@/components/ui/card-new';
 import Button from '@/components/ui/button-new';
 import ProgressBar from '@/components/ui/ProgressBar';
+import { useAccount } from 'wagmi';
+import { toast } from 'react-toastify';
+import { useParams } from 'next/navigation';
 
-// Mock data - in a real app, this would come from an API
-const mockCampaign = {
-  id: '1',
-  title: 'DeFi Protocol Upgrade',
-  description: 'Building the next generation of decentralized finance with cross-chain compatibility and enhanced security features. Our protocol will enable seamless asset transfers across multiple blockchains while maintaining the highest security standards.',
-  longDescription: `
-    We are developing a revolutionary DeFi protocol that addresses the current limitations in cross-chain interoperability. Our solution leverages cutting-edge technology including Avail Nexus SDK and EIP-7702 automation to create a truly decentralized and efficient financial ecosystem.
+interface Campaign {
+  campaignId: string;
+  name: string;
+  description: string;
+  goal: number;
+  raised: number;
+  deadline: string;
+  backers: number;
+  chain: string;
+  status: 'active' | 'completed' | 'pending_verification' | 'rejected' | 'approved';
+  userAddress: string;
+  milestones: Array<{
+    id: string;
+    title: string;
+    description: string;
+    amount: number;
+    deadline: string;
+    status: 'completed' | 'in-progress' | 'pending';
+  }>;
+  teamMembers: Array<{
+    id: string;
+    name: string;
+    wallet: string;
+    percentage: number;
+  }>;
+  createdAt: string;
+  updatedAt: string;
+}
 
-    ## Key Features:
-    - Cross-chain asset transfers with minimal fees
-    - Automated liquidity management
-    - Enhanced security through smart contract audits
-    - Community governance integration
-    - Real-time streaming payments
+interface ContributionModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  campaign: Campaign;
+  userAddress: string | undefined;
+}
 
-    ## Technical Implementation:
-    Our protocol is built on a robust architecture that ensures scalability, security, and user-friendly experience. We utilize the latest Web3 technologies to create a seamless bridge between different blockchain networks.
+function ContributionModal({ isOpen, onClose, campaign, userAddress }: ContributionModalProps) {
+  const [contributionType, setContributionType] = useState<'one-time' | 'recurring'>('one-time');
+  const [amount, setAmount] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-    ## Roadmap:
-    - Q1 2024: Core protocol development
-    - Q2 2024: Security audits and testing
-    - Q3 2024: Beta launch on testnets
-    - Q4 2024: Mainnet deployment
-  `,
-  image: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800&h=400&fit=crop',
-  goal: 50000,
-  raised: 32500,
-  deadline: '2024-12-31',
-  backers: 127,
-  chain: 'Ethereum',
-  status: 'active' as const,
-  creator: {
-    name: 'Alex Chen',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
-    verified: true,
-  },
-  milestones: [
-    {
-      id: '1',
-      title: 'Core Protocol Development',
-      description: 'Complete the basic protocol architecture and smart contracts',
-      amount: 15000,
-      deadline: '2024-03-31',
-      status: 'completed' as const,
-    },
-    {
-      id: '2',
-      title: 'Security Audits',
-      description: 'Conduct comprehensive security audits with leading firms',
-      amount: 20000,
-      deadline: '2024-06-30',
-      status: 'in-progress' as const,
-    },
-    {
-      id: '3',
-      title: 'Beta Testing',
-      description: 'Launch beta version on testnets for community testing',
-      amount: 10000,
-      deadline: '2024-09-30',
-      status: 'pending' as const,
-    },
-    {
-      id: '4',
-      title: 'Mainnet Launch',
-      description: 'Deploy the protocol on mainnet with full functionality',
-      amount: 5000,
-      deadline: '2024-12-31',
-      status: 'pending' as const,
-    },
-  ],
-  sponsors: [
-    { name: 'CryptoVentures', amount: 10000, avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=40&h=40&fit=crop&crop=face' },
-    { name: 'DeFi Capital', amount: 8500, avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop&crop=face' },
-    { name: 'Blockchain Fund', amount: 7500, avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=40&h=40&fit=crop&crop=face' },
-    { name: 'Web3 Angels', amount: 6500, avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=40&h=40&fit=crop&crop=face' },
-  ],
-  escrow: {
-    address: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
-    status: 'active',
-    streamingEnabled: true,
-    totalStreamed: 15000,
-  },
-};
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!userAddress) {
+      toast.error('Please connect your wallet to contribute');
+      return;
+    }
+
+    // Check if user is a team member
+    const isTeamMember = campaign.teamMembers.some(member =>
+      member.wallet.toLowerCase() === userAddress.toLowerCase()
+    );
+
+    if (isTeamMember) {
+      toast.error('Team members cannot contribute to their own projects');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('/api/contributions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          campaignId: campaign.campaignId,
+          userId: userAddress,
+          amount: Number(amount),
+          transactionHash: `0x${Math.random().toString(16).substr(2, 64)}`, // Mock transaction hash
+          type: contributionType,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success(`Contribution of $${amount} ${contributionType === 'recurring' ? 'recurring' : 'one-time'} recorded!`);
+        onClose();
+        setAmount('');
+      } else {
+        toast.error(result.error);
+      }
+    } catch (error) {
+      console.error('Error creating contribution:', error);
+      toast.error('Failed to create contribution. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-background border-2 border-foreground rounded-lg p-6 w-full max-w-md mx-4">
+        <h2 className="text-2xl font-bold text-foreground mb-6">Contribute to Campaign</h2>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Contribution Type */}
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-2">
+              Contribution Type
+            </label>
+            <div className="flex space-x-4">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  value="one-time"
+                  checked={contributionType === 'one-time'}
+                  onChange={(e) => setContributionType(e.target.value as 'one-time' | 'recurring')}
+                  className="mr-2"
+                />
+                One-time
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  value="recurring"
+                  checked={contributionType === 'recurring'}
+                  onChange={(e) => setContributionType(e.target.value as 'one-time' | 'recurring')}
+                  className="mr-2"
+                />
+                Recurring
+              </label>
+            </div>
+          </div>
+
+          {/* Amount */}
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-2">
+              Amount (USD)
+            </label>
+            <input
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="Enter amount"
+              className="w-full px-3 py-2 border-2 border-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+              required
+              min="1"
+            />
+          </div>
+
+          {/* Actions */}
+          <div className="flex space-x-3 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSubmitting || !amount}
+              className="flex-1"
+            >
+              {isSubmitting ? (
+                <div className="flex items-center justify-center">
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Contributing...
+                </div>
+              ) : (
+                `Contribute $${amount || '0'}`
+              )}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
 
 export default function CampaignDetail() {
+  const { address } = useAccount();
+  const [campaign, setCampaign] = useState<Campaign | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showContributionModal, setShowContributionModal] = useState(false);
+    const campaignId = useParams().id;
 
-  const progress = (mockCampaign.raised / mockCampaign.goal) * 100;
+  console.log("campaignId:: ",campaignId);
+
+  useEffect(() => {
+    fetchCampaign();
+  }, [campaignId]);
+
+  const fetchCampaign = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/campaigns/${campaignId}`);
+      const result = await response.json();
+
+      if (result.success) {
+        setCampaign(result.data);
+      } else {
+        setError(result.error);
+      }
+    } catch (err) {
+      setError('Failed to fetch campaign');
+      console.error('Error fetching campaign:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="py-8 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center py-12">
+              <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4" />
+              <p className="text-foreground/70">Loading campaign...</p>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error || !campaign) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="py-8 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center py-12">
+              <p className="text-red-500 mb-4">Error: {error || 'Campaign not found'}</p>
+              <Button onClick={fetchCampaign}>Try Again</Button>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  const progress = (campaign.raised / campaign.goal) * 100;
 
   const formatAmount = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -121,6 +283,12 @@ export default function CampaignDetail() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+      <ContributionModal
+        isOpen={showContributionModal}
+        onClose={() => setShowContributionModal(false)}
+        campaign={campaign}
+        userAddress={address}
+      />
 
       <main className="py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
@@ -131,19 +299,19 @@ export default function CampaignDetail() {
               <Card>
                 <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary-light/20 rounded-lg mb-6 relative overflow-hidden">
                   <Image
-                    src={mockCampaign.image}
-                    alt={mockCampaign.title}
+                    src="https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800&h=400&fit=crop"
+                    alt={campaign.name}
                     fill
                     className="object-cover"
                   />
                   <div className="absolute top-4 right-4">
                     <span className="px-3 py-1 bg-primary text-white text-sm font-semibold rounded-full border-2 border-white">
-                      {mockCampaign.status.toUpperCase()}
+                      {campaign.status.toUpperCase()}
                     </span>
                   </div>
                   <div className="absolute bottom-4 left-4">
                     <span className="px-2 py-1 bg-background/90 text-foreground text-sm font-medium rounded border border-foreground/20">
-                      {mockCampaign.chain}
+                      {campaign.chain}
                     </span>
                   </div>
                 </div>
@@ -151,23 +319,23 @@ export default function CampaignDetail() {
                 <div className="space-y-6">
                   <div>
                     <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-                      {mockCampaign.title}
+                      {campaign.name}
                     </h1>
                     <p className="text-lg text-foreground/70 leading-relaxed">
-                      {mockCampaign.description}
+                      {campaign.description}
                     </p>
                   </div>
 
                   <div className="flex flex-wrap gap-4">
-                    <Button variant="outline" size="sm" className="group">
+                    <Button variant="outline" size="sm" className="group cursor-pointer">
                       <Share2 className="w-4 h-4 mr-2 group-hover:rotate-12 transition-transform duration-200" />
                       Share
                     </Button>
-                    <Button variant="outline" size="sm" className="group">
+                    <Button variant="outline" size="sm" className="group cursor-pointer">
                       <Heart className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform duration-200" />
                       Save
                     </Button>
-                    <Button variant="outline" size="sm" className="group">
+                    <Button variant="outline" size="sm" className="group cursor-pointer">
                       <ExternalLink className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform duration-200" />
                       View on Explorer
                     </Button>
@@ -179,7 +347,9 @@ export default function CampaignDetail() {
               <Card>
                 <h2 className="text-2xl font-bold text-foreground mb-6">Campaign Details</h2>
                 <div className="prose prose-lg max-w-none">
-                  <div dangerouslySetInnerHTML={{ __html: mockCampaign.longDescription.replace(/\n/g, '<br>') }} />
+                  <p className="text-foreground/70 leading-relaxed">
+                    {campaign.description}
+                  </p>
                 </div>
               </Card>
 
@@ -190,7 +360,7 @@ export default function CampaignDetail() {
                   Milestones
                 </h2>
                 <div className="space-y-4">
-                  {mockCampaign.milestones.map((milestone) => (
+                  {campaign.milestones.map((milestone) => (
                     <div key={milestone.id} className="border-2 border-foreground/20 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
                         <h3 className="font-semibold text-foreground">{milestone.title}</h3>
@@ -200,7 +370,7 @@ export default function CampaignDetail() {
                             ? 'bg-blue-100 text-blue-800 border border-blue-200'
                             : 'bg-gray-100 text-gray-800 border border-gray-200'
                           }`}>
-                          {milestone.status.replace('-', ' ').toUpperCase()}
+                          {milestone?.status?.replace('-', ' ').toUpperCase()}
                         </span>
                       </div>
                       <p className="text-foreground/70 mb-2">{milestone.description}</p>
@@ -213,30 +383,6 @@ export default function CampaignDetail() {
                 </div>
               </Card>
 
-              {/* Sponsors */}
-              <Card>
-                <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center">
-                  <Users className="w-6 h-6 mr-3" />
-                  Top Sponsors
-                </h2>
-                <div className="space-y-3">
-                  {mockCampaign.sponsors.map((sponsor, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 border border-foreground/20 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <Image
-                          src={sponsor.avatar}
-                          alt={sponsor.name}
-                          width={40}
-                          height={40}
-                          className="w-10 h-10 rounded-full"
-                        />
-                        <span className="font-medium text-foreground">{sponsor.name}</span>
-                      </div>
-                      <span className="font-semibold text-primary">{formatAmount(sponsor.amount)}</span>
-                    </div>
-                  ))}
-                </div>
-              </Card>
             </div>
 
             {/* Sidebar */}
@@ -245,10 +391,10 @@ export default function CampaignDetail() {
               <Card>
                 <div className="text-center mb-6">
                   <div className="text-3xl font-bold text-foreground mb-2">
-                    {formatAmount(mockCampaign.raised)}
+                    {formatAmount(campaign.raised)}
                   </div>
                   <div className="text-foreground/70">
-                    raised of {formatAmount(mockCampaign.goal)} goal
+                    raised of {formatAmount(campaign.goal)} goal
                   </div>
                 </div>
 
@@ -260,19 +406,20 @@ export default function CampaignDetail() {
 
                 <div className="space-y-4">
                   <div className="flex justify-between text-sm text-foreground/70">
-                    <span>{mockCampaign.backers} backers</span>
+                    <span>{campaign.backers} backers</span>
                     <span className="flex items-center">
                       <Clock className="w-4 h-4 mr-1" />
-                      {formatDeadline(mockCampaign.deadline)}
+                      {formatDeadline(campaign.deadline)}
                     </span>
                   </div>
 
                   <Button
                     size="lg"
-                    className="w-full"
-                    onClick={() => console.log('Contribute clicked')}
+                    className="w-full cursor-pointer"
+                    onClick={() => setShowContributionModal(true)}
+                    disabled={!address}
                   >
-                    Contribute Now
+                    {address ? 'Contribute Now' : 'Connect Wallet to Contribute'}
                   </Button>
                 </div>
               </Card>
@@ -281,21 +428,19 @@ export default function CampaignDetail() {
               <Card>
                 <h3 className="font-semibold text-foreground mb-4">Created by</h3>
                 <div className="flex items-center space-x-3">
-                  <Image
-                    src={mockCampaign.creator.avatar}
-                    alt={mockCampaign.creator.name}
-                    width={48}
-                    height={48}
-                    className="w-12 h-12 rounded-full"
-                  />
+                  <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-light rounded-full flex items-center justify-center">
+                    <span className="text-white font-bold text-lg">
+                      {campaign.userAddress.slice(2, 4).toUpperCase()}
+                    </span>
+                  </div>
                   <div>
                     <div className="flex items-center space-x-2">
-                      <span className="font-medium text-foreground">{mockCampaign.creator.name}</span>
-                      {mockCampaign.creator.verified && (
-                        <Shield className="w-4 h-4 text-primary" />
-                      )}
+                      <span className="font-medium text-foreground font-mono text-sm">
+                        {campaign.userAddress.slice(0, 6)}...{campaign.userAddress.slice(-4)}
+                      </span>
+                      <Shield className="w-4 h-4 text-primary" />
                     </div>
-                    <span className="text-sm text-foreground/70">Verified Creator</span>
+                    <span className="text-sm text-foreground/70">Campaign Creator</span>
                   </div>
                 </div>
               </Card>
@@ -310,48 +455,20 @@ export default function CampaignDetail() {
                   <div>
                     <span className="text-foreground/70">Address:</span>
                     <div className="font-mono text-xs bg-secondary/50 p-2 rounded mt-1 break-all">
-                      {mockCampaign.escrow.address}
+                      {campaign.userAddress}
                     </div>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-foreground/70">Status:</span>
-                    <span className="text-green-600 font-medium capitalize">{mockCampaign.escrow.status}</span>
+                    <span className="text-green-600 font-medium capitalize">{campaign.status}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-foreground/70">Streaming:</span>
-                    <span className="text-green-600 font-medium">
-                      {mockCampaign.escrow.streamingEnabled ? 'Active' : 'Paused'}
-                    </span>
+                    <span className="text-green-600 font-medium">Active</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-foreground/70">Streamed:</span>
-                    <span className="font-medium">{formatAmount(mockCampaign.escrow.totalStreamed)}</span>
-                  </div>
-                </div>
-              </Card>
-
-              {/* Technology Stack */}
-              <Card>
-                <h3 className="font-semibold text-foreground mb-4 flex items-center">
-                  <Globe className="w-5 h-5 mr-2" />
-                  Technology
-                </h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-foreground/70">Cross-chain:</span>
-                    <span className="font-medium">Avail Nexus SDK</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-foreground/70">Automation:</span>
-                    <span className="font-medium">EIP-7702</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-foreground/70">Escrow:</span>
-                    <span className="font-medium">Smart Contracts</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-foreground/70">Streaming:</span>
-                    <span className="font-medium">Real-time</span>
+                    <span className="text-foreground/70">Raised:</span>
+                    <span className="font-medium">{formatAmount(campaign.raised)}</span>
                   </div>
                 </div>
               </Card>

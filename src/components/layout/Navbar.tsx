@@ -13,8 +13,9 @@ export default function Navbar() {
     { name: 'Home', href: '/' },
     { name: 'Campaigns', href: '/campaigns' },
     { name: 'Create', href: '/create' },
-    { name: 'Payroll', href: '/payroll' },
+    // { name: 'Payroll', href: '/payroll' },
     { name: 'DAO', href: '/dao' },
+    // { name: 'Profile', href: '/profile' },
   ];
 
   return (
@@ -44,16 +45,16 @@ export default function Navbar() {
 
           {/* Right side buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            <button className="btn-secondary flex items-center space-x-2">
-              <ConnectWallet />
-              <NexusInitButton />
-            </button>
-            <button className="p-2 text-foreground hover:text-primary transition-colors">
+            {/* <button className="btn-secondary flex items-center space-x-2"> */}
+            <ConnectWallet />
+            <NexusInitButton />
+            {/* </button> */}
+            <Link href="/profile" className="p-2 text-foreground hover:text-primary transition-colors">
               <User className="w-5 h-5" />
-            </button>
-            <button className="p-2 text-foreground hover:text-primary transition-colors">
+            </Link>
+            {/* <Link href="/settings" className="p-2 text-foreground hover:text-primary transition-colors">
               <Settings className="w-5 h-5" />
-            </button>
+            </Link> */}
           </div>
 
           {/* Mobile menu button */}
@@ -81,6 +82,7 @@ export default function Navbar() {
                   {item.name}
                 </Link>
               ))}
+              <Link href={'/profile'} className="block px-3 py-2 text-foreground hover:text-primary transition-colors font-medium">Profile</Link>
               <div className="pt-4 space-y-2">
                 <button className="w-full btn-secondary flex items-center justify-center space-x-2">
                   <Wallet className="w-4 h-4" />

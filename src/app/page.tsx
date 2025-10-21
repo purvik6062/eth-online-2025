@@ -48,7 +48,7 @@ export default function Home() {
 
       <main>
         {/* Hero Section */}
-        <section className="relative py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
+        <section className="relative pt-16 pb-10 px-4 sm:px-6 lg:px-8 overflow-hidden">
           <div className="max-w-7xl mx-auto">
             <div className="text-center relative">
               {/* Floating background elements */}
@@ -56,15 +56,12 @@ export default function Home() {
               <div className="absolute -top-5 -right-10 w-16 h-16 bg-primary-light/10 rounded-full hero-float"></div>
               <div className="absolute top-20 left-1/4 w-12 h-12 bg-accent/10 rounded-full hero-float"></div>
 
-              <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
-                <span className="block">Fund projects across chains —</span>
-                <span className="tagline-highlight block mt-2">
-                  transparently and automatically
-                </span>
+              <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent">
+                Fund across chains, effortlessly
               </h1>
 
               <div className="relative mb-8">
-                <p className="text-xl text-foreground/70 max-w-3xl mx-auto leading-relaxed">
+                <p className="text-xl text-foreground/70 max-w-4xl mx-auto leading-relaxed">
                   <span className="font-semibold text-primary">Nexican</span> is the decentralized cross-chain crowdfunding and payroll streaming platform
                   built with <span className="font-semibold">Avail Nexus SDK</span> and <span className="font-semibold">EIP-7702 automation</span> for the future of Web3 funding.
                 </p>
@@ -92,7 +89,7 @@ export default function Home() {
               </div>
 
               {/* Technology badges */}
-              <div className="mt-12 flex flex-wrap justify-center gap-3">
+              {/* <div className="mt-12 flex flex-wrap justify-center gap-3">
                 <span className="px-4 py-2 bg-primary/10 text-primary font-semibold rounded-full border-2 border-primary/20 text-sm">
                   Avail Nexus SDK
                 </span>
@@ -105,7 +102,7 @@ export default function Home() {
                 <span className="px-4 py-2 bg-secondary/50 text-foreground font-semibold rounded-full border-2 border-foreground/20 text-sm">
                   Smart Contracts
                 </span>
-              </div>
+              </div> */}
             </div>
           </div>
         </section>
