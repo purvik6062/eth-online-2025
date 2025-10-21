@@ -1,7 +1,6 @@
-import { useNexus } from "@/providers/NexusProvider";
-import { CHAIN_METADATA, type UserAsset } from "@avail-project/nexus-core";
+import { CHAIN_METADATA } from "@avail-project/nexus-core";
 import { DollarSign, Loader2 } from "lucide-react";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment } from "react";
 import { Label } from "./ui/label";
 import {
   Accordion,
@@ -10,34 +9,10 @@ import {
   AccordionTrigger,
 } from "./ui/accordion";
 import { SelectSeparator } from "./ui/select";
+import { useUnifiedBalance } from "@/hooks/useUnifiedBalance";
 
 const NexusUnifiedBalance = () => {
-  const [unifiedBalance, setUnifiedBalance] = useState<UserAsset[] | undefined>(
-    undefined,
-  );
-  const [isLoading, setIsLoading] = useState(false);
-  const { nexusSDK } = useNexus();
-  const fetchUnifiedBalance = async () => {
-    setIsLoading(true);
-    try {
-      const balance = await nexusSDK?.getUnifiedBalances();
-      console.log("Unified Balance:", balance);
-      setUnifiedBalance(balance);
-    } catch (error) {
-      console.error("Error fetching unified balance:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchUnifiedBalance();
-  }, []);
-
-  const formatBalance = (balance: string, decimals: number) => {
-    const num = parseFloat(balance);
-    return num.toFixed(Math.min(6, decimals));
-  };
+  const { unifiedBalance, isLoading, formatBalance } = useUnifiedBalance();
 
   if (isLoading) {
     return (

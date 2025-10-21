@@ -44,10 +44,8 @@ export default function Navbar() {
 
           {/* Right side buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            <button className="btn-secondary flex items-center space-x-2">
               <ConnectWallet />
               <NexusInitButton />
-            </button>
             <button className="p-2 text-foreground hover:text-primary transition-colors">
               <User className="w-5 h-5" />
             </button>
@@ -81,12 +79,12 @@ export default function Navbar() {
                   {item.name}
                 </Link>
               ))}
-              <div className="pt-4 space-y-2">
+              {/* <div className="pt-4 space-y-2">
                 <button className="w-full btn-secondary flex items-center justify-center space-x-2">
                   <Wallet className="w-4 h-4" />
                   <span>Connect Wallet</span>
                 </button>
-              </div>
+              </div> */}
             </div>
           </div>
         )}

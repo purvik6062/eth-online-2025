@@ -1,47 +1,64 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { ArrowRight, Zap, Shield, Globe, Users } from 'lucide-react';
-import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';
-import BalanceCard from '@/components/campaign/BalanceCard';
-import Button from '@/components/ui/button-new';
-import Card from '@/components/ui/card-new';
-
-const mockBalance = {
-  totalBalance: 15420.50,
-  change24h: 2.3,
-  chains: [
-    { name: 'Ethereum', balance: 8540.25, symbol: 'ETH' },
-    { name: 'Polygon', balance: 3200.00, symbol: 'MATIC' },
-    { name: 'Arbitrum', balance: 3680.25, symbol: 'ARB' },
-  ],
-};
+import Link from "next/link";
+import { ArrowRight, Zap, Shield, Globe, Users, Loader2 } from "lucide-react";
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
+import BalanceCard from "@/components/campaign/BalanceCard";
+import Button from "@/components/ui/button-new";
+import Card from "@/components/ui/card-new";
+import { useUnifiedBalance } from "@/hooks/useUnifiedBalance";
 
 const features = [
   {
     icon: Globe,
-    title: 'Cross-Chain Funding',
-    description: 'Fund projects across multiple blockchains seamlessly with Avail Nexus SDK integration.',
+    title: "Cross-Chain Funding",
+    description:
+      "Fund projects across multiple blockchains seamlessly with Avail Nexus SDK integration.",
   },
   {
     icon: Shield,
-    title: 'Transparent Escrow',
-    description: 'Smart contract-based escrow ensures funds are released only when milestones are met.',
+    title: "Transparent Escrow",
+    description:
+      "Smart contract-based escrow ensures funds are released only when milestones are met.",
   },
   {
     icon: Zap,
-    title: 'EIP-7702 Automation',
-    description: 'Automated payroll streaming and milestone-based fund distribution using EIP-7702.',
+    title: "EIP-7702 Automation",
+    description:
+      "Automated payroll streaming and milestone-based fund distribution using EIP-7702.",
   },
   {
     icon: Users,
-    title: 'DAO Governance',
-    description: 'Community-driven verification and approval process for campaign milestones.',
+    title: "DAO Governance",
+    description:
+      "Community-driven verification and approval process for campaign milestones.",
   },
 ];
 
 export default function Home() {
+  const { unifiedBalance, isLoading, error, totalBalance } =
+    useUnifiedBalance();
+
+  // Create dynamic balance data from unified balance
+  const balanceData = unifiedBalance
+    ? {
+        totalBalance: totalBalance,
+        change24h: 0, // This would need to be calculated from historical data
+        chains: unifiedBalance
+          .filter((token) => parseFloat(token.balance) > 0)
+          .map((token) => ({
+            name: token.symbol,
+            balance: token.balanceInFiat,
+            symbol: token.symbol,
+          })),
+      }
+    : {
+        totalBalance: 0,
+        change24h: 0,
+        chains: [],
+      };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -65,8 +82,12 @@ export default function Home() {
 
               <div className="relative mb-8">
                 <p className="text-xl text-foreground/70 max-w-3xl mx-auto leading-relaxed">
-                  <span className="font-semibold text-primary">Nexican</span> is the decentralized cross-chain crowdfunding and payroll streaming platform
-                  built with <span className="font-semibold">Avail Nexus SDK</span> and <span className="font-semibold">EIP-7702 automation</span> for the future of Web3 funding.
+                  <span className="font-semibold text-primary">Nexican</span> is
+                  the decentralized cross-chain crowdfunding and payroll
+                  streaming platform built with{" "}
+                  <span className="font-semibold">Avail Nexus SDK</span> and{" "}
+                  <span className="font-semibold">EIP-7702 automation</span> for
+                  the future of Web3 funding.
                 </p>
                 {/* Decorative underline */}
                 <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-primary to-primary-light rounded-full"></div>
@@ -74,7 +95,10 @@ export default function Home() {
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <Link href="/create" className="group">
-                  <Button size="lg" className="w-full sm:w-auto transition-transform duration-200">
+                  <Button
+                    size="lg"
+                    className="w-full sm:w-auto transition-transform duration-200"
+                  >
                     <span className="flex items-center">
                       Create Campaign
                       <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
@@ -82,7 +106,11 @@ export default function Home() {
                   </Button>
                 </Link>
                 <Link href="/campaigns" className="group">
-                  <Button variant="secondary" size="lg" className="w-full sm:w-auto transition-transform duration-200">
+                  <Button
+                    variant="secondary"
+                    size="lg"
+                    className="w-full sm:w-auto transition-transform duration-200"
+                  >
                     <span className="flex items-center">
                       Explore Campaigns
                       <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
@@ -113,7 +141,25 @@ export default function Home() {
         {/* Balance Summary */}
         <section className="py-12 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
-            <BalanceCard {...mockBalance} />
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="flex items-center gap-3 text-muted-foreground">
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                  <span>Loading your balance...</span>
+                </div>
+              </div>
+            ) : error ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <p className="text-muted-foreground mb-4">
+                    Unable to load balance
+                  </p>
+                  <p className="text-sm text-muted-foreground/70">{error}</p>
+                </div>
+              </div>
+            ) : (
+              <BalanceCard {...balanceData} />
+            )}
           </div>
         </section>
 
@@ -125,7 +171,8 @@ export default function Home() {
                 Why Choose Nexican?
               </h2>
               <p className="text-lg text-foreground/70 max-w-2xl mx-auto">
-                Built with cutting-edge Web3 technology for transparent, automated, and cross-chain funding.
+                Built with cutting-edge Web3 technology for transparent,
+                automated, and cross-chain funding.
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -221,8 +268,10 @@ export default function Home() {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create">
-                  <Button size="lg" >
-                    <span className="flex items-center"> Start Your Campaign
+                  <Button size="lg">
+                    <span className="flex items-center">
+                      {" "}
+                      Start Your Campaign
                       <ArrowRight className="w-5 h-5 ml-2" />
                     </span>
                   </Button>
