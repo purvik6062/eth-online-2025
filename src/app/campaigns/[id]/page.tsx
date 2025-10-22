@@ -10,7 +10,7 @@ import Button from '@/components/ui/button-new';
 import ProgressBar from '@/components/ui/ProgressBar';
 import { useAccount } from 'wagmi';
 import { toast } from 'react-toastify';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 
 interface Campaign {
   campaignId: string;
@@ -41,163 +41,16 @@ interface Campaign {
   updatedAt: string;
 }
 
-interface ContributionModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  campaign: Campaign;
-  userAddress: string | undefined;
-}
-
-function ContributionModal({ isOpen, onClose, campaign, userAddress }: ContributionModalProps) {
-  const [contributionType, setContributionType] = useState<'one-time' | 'recurring'>('one-time');
-  const [amount, setAmount] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!userAddress) {
-      toast.error('Please connect your wallet to contribute');
-      return;
-    }
-
-    // Check if user is a team member
-    const isTeamMember = campaign.teamMembers.some(member =>
-      member.wallet.toLowerCase() === userAddress.toLowerCase()
-    );
-
-    if (isTeamMember) {
-      toast.error('Team members cannot contribute to their own projects');
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      const response = await fetch('/api/contributions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          campaignId: campaign.campaignId,
-          userId: userAddress,
-          amount: Number(amount),
-          transactionHash: `0x${Math.random().toString(16).substr(2, 64)}`, // Mock transaction hash
-          type: contributionType,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        toast.success(`Contribution of $${amount} ${contributionType === 'recurring' ? 'recurring' : 'one-time'} recorded!`);
-        onClose();
-        setAmount('');
-      } else {
-        toast.error(result.error);
-      }
-    } catch (error) {
-      console.error('Error creating contribution:', error);
-      toast.error('Failed to create contribution. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-background border-2 border-foreground rounded-lg p-6 w-full max-w-md mx-4">
-        <h2 className="text-2xl font-bold text-foreground mb-6">Contribute to Campaign</h2>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Contribution Type */}
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
-              Contribution Type
-            </label>
-            <div className="flex space-x-4">
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  value="one-time"
-                  checked={contributionType === 'one-time'}
-                  onChange={(e) => setContributionType(e.target.value as 'one-time' | 'recurring')}
-                  className="mr-2"
-                />
-                One-time
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  value="recurring"
-                  checked={contributionType === 'recurring'}
-                  onChange={(e) => setContributionType(e.target.value as 'one-time' | 'recurring')}
-                  className="mr-2"
-                />
-                Recurring
-              </label>
-            </div>
-          </div>
-
-          {/* Amount */}
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
-              Amount (USD)
-            </label>
-            <input
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="Enter amount"
-              className="w-full px-3 py-2 border-2 border-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
-              required
-              min="1"
-            />
-          </div>
-
-          {/* Actions */}
-          <div className="flex space-x-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting || !amount}
-              className="flex-1"
-            >
-              {isSubmitting ? (
-                <div className="flex items-center justify-center">
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Contributing...
-                </div>
-              ) : (
-                `Contribute $${amount || '0'}`
-              )}
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
 
 export default function CampaignDetail() {
   const { address } = useAccount();
+  const router = useRouter();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showContributionModal, setShowContributionModal] = useState(false);
-    const campaignId = useParams().id;
+  const campaignId = useParams().id;
 
-  console.log("campaignId:: ",campaignId);
+  console.log("campaignId:: ", campaignId);
 
   useEffect(() => {
     fetchCampaign();
@@ -283,12 +136,6 @@ export default function CampaignDetail() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <ContributionModal
-        isOpen={showContributionModal}
-        onClose={() => setShowContributionModal(false)}
-        campaign={campaign}
-        userAddress={address}
-      />
 
       <main className="py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
@@ -416,7 +263,7 @@ export default function CampaignDetail() {
                   <Button
                     size="lg"
                     className="w-full cursor-pointer"
-                    onClick={() => setShowContributionModal(true)}
+                    onClick={() => router.push(`/campaigns/${campaignId}/contribute`)}
                     disabled={!address}
                   >
                     {address ? 'Contribute Now' : 'Connect Wallet to Contribute'}

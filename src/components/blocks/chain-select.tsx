@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import { Label } from "../ui/label";
+import Image from "next/image";
 
 const ChainSelect = ({
   selectedChain,
@@ -22,7 +23,7 @@ const ChainSelect = ({
   disabled = false,
 }: {
   selectedChain: SUPPORTED_CHAINS_IDS;
-  handleSelect: (chainId: SUPPORTED_CHAINS_IDS) => void;
+  handleSelect?: (chainId: SUPPORTED_CHAINS_IDS) => void;
   chainLabel?: string;
   isTestnet?: boolean;
   disabled?: boolean;
@@ -46,14 +47,14 @@ const ChainSelect = ({
           <SelectValue>
             {!!selectedChain && (
               <div className="flex items-center gap-x-2">
-                <img
+                <Image
                   src={CHAIN_METADATA[selectedChain]?.logo}
                   alt={CHAIN_METADATA[selectedChain]?.name ?? ""}
                   width={24}
                   height={24}
                   className="rounded-full"
                 />
-                <p className="text-primary test-sm">
+                <p className="test-sm">
                   {CHAIN_METADATA[selectedChain]?.name}
                 </p>
               </div>
@@ -68,14 +69,14 @@ const ChainSelect = ({
             return (
               <SelectItem key={chainId} value={chainId.toString()}>
                 <div className="flex items-center gap-x-2 my-1">
-                  <img
+                  <Image
                     src={CHAIN_METADATA[chainId]?.logo}
                     alt={chainData[chainId]?.name ?? ""}
                     width={24}
                     height={24}
                     className="rounded-full"
                   />
-                  <p className="text-primary test-sm">
+                  <p className="test-sm">
                     {chainData[chainId]?.name}
                   </p>
                 </div>

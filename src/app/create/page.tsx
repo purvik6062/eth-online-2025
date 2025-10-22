@@ -353,7 +353,7 @@ export default function CreateCampaign() {
             </Card>
 
             {/* Team Members */}
-            <Card>
+            {/* <Card>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-foreground flex items-center">
                   <Users className="w-6 h-6 mr-3" />
@@ -425,7 +425,7 @@ export default function CreateCampaign() {
                   </div>
                 ))}
               </div>
-            </Card>
+            </Card> */}
 
             {/* File Uploads */}
             <Card>
@@ -437,7 +437,7 @@ export default function CreateCampaign() {
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Campaign Image *
+                    Campaign Image
                   </label>
                   <div className="border-2 border-dashed border-foreground/30 rounded-lg p-8 text-center">
                     <Upload className="w-12 h-12 text-foreground/40 mx-auto mb-4" />

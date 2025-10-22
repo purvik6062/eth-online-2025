@@ -8,6 +8,7 @@ import BalanceCard from "@/components/campaign/BalanceCard";
 import Button from "@/components/ui/button-new";
 import Card from "@/components/ui/card-new";
 import { useUnifiedBalance } from "@/hooks/useUnifiedBalance";
+import UnifiedBalance from "@/components/UnifiedBalance";
 
 const features = [
   {
@@ -37,28 +38,6 @@ const features = [
 ];
 
 export default function Home() {
-  const { unifiedBalance, isLoading, error, totalBalance } =
-    useUnifiedBalance();
-
-  // Create dynamic balance data from unified balance
-  const balanceData = unifiedBalance
-    ? {
-        totalBalance: totalBalance,
-        change24h: 0, // This would need to be calculated from historical data
-        chains: unifiedBalance
-          .filter((token) => parseFloat(token.balance) > 0)
-          .map((token) => ({
-            name: token.symbol,
-            balance: token.balanceInFiat,
-            symbol: token.symbol,
-          })),
-      }
-    : {
-        totalBalance: 0,
-        change24h: 0,
-        chains: [],
-      };
-
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -137,27 +116,7 @@ export default function Home() {
 
         {/* Balance Summary */}
         <section className="py-12 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto">
-            {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="flex items-center gap-3 text-muted-foreground">
-                  <Loader2 className="w-6 h-6 animate-spin" />
-                  <span>Loading your balance...</span>
-                </div>
-              </div>
-            ) : error ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="text-center">
-                  <p className="text-muted-foreground mb-4">
-                    Unable to load balance
-                  </p>
-                  <p className="text-sm text-muted-foreground/70">{error}</p>
-                </div>
-              </div>
-            ) : (
-              <BalanceCard {...balanceData} />
-            )}
-          </div>
+          <UnifiedBalance />
         </section>
 
         {/* Features Section */}

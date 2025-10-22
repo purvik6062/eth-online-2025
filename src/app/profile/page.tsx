@@ -8,6 +8,7 @@ import Card from '@/components/ui/card-new';
 import Button from '@/components/ui/button-new';
 import ProgressBar from '@/components/ui/ProgressBar';
 import { useAccount } from 'wagmi';
+import UnifiedBalance from '@/components/UnifiedBalance';
 
 interface UserProfile {
   user: {
@@ -158,7 +159,8 @@ export default function ProfilePage() {
                         <Wallet className="w-4 h-4 mr-1" />
                         {profile.user.walletAddress}
                       </span>
-                      <span>Joined {formatDate(profile.user.joinedAt)}</span>
+                      <div className="cursor-pointer" onClick={() => navigator.clipboard.writeText(profile.user.walletAddress)}>Copy</div>
+                      {/* <span>Joined {formatDate(profile.user.joinedAt)}</span> */}
                     </div>
                   </div>
                   {profile.user.verified && (
@@ -170,44 +172,9 @@ export default function ProfilePage() {
               </Card>
 
               {/* Unified Balance */}
-              <Card>
-                <h3 className="text-xl font-bold text-foreground mb-6 flex items-center">
-                  <DollarSign className="w-6 h-6 mr-3" />
-                  Unified Balance
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-foreground/70">Total Contributed</span>
-                      <span className="font-semibold text-red-500">
-                        -{formatAmount(profile?.balance?.totalContributed)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-foreground/70">Total Raised</span>
-                      <span className="font-semibold text-blue-500">
-                        {formatAmount(profile?.balance?.totalRaised)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-foreground/70">Total Earned</span>
-                      <span className="font-semibold text-green-500">
-                        {formatAmount(profile?.balance?.totalEarned)}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <div className="p-4 bg-gradient-to-r from-primary/10 to-primary-light/10 rounded-lg border-2 border-primary/20">
-                      <div className="text-center">
-                        <p className="text-sm text-foreground/70 mb-1">Net Balance</p>
-                        <p className={`text-2xl font-bold ${profile?.balance?.netBalance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                          {formatAmount(profile?.balance?.netBalance)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </Card>
+              <>
+                <UnifiedBalance />
+              </>
 
               {/* Stats Overview */}
               <Card>
