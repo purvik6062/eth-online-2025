@@ -1,0 +1,40 @@
+/* Based on https://github.com/tsconfig/bases/blob/501da2bcd640cf95c95805783e1012b992338f28/bases/node22.json */
+{
+  "compilerOptions": {
+    "lib": ["es2023"],
+    "module": "node16",
+    "target": "es2022",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "moduleResolution": "node16",
+    "outDir": "dist"
+  },
+  "include": ["*.ts", "scripts/**/*.ts", "tasks/**/*.ts","hardhat.config.ts", "scripts", "tasks"],
+  "files": ["./hardhat.config.ts"]
+}
+
+
+// {
+//   "extends": "@tsconfig/node22/tsconfig.json",
+//   "compilerOptions": {
+//     "strict": true,
+//     "esModuleInterop": true,
+//     "skipLibCheck": true,
+//     "outDir": "dist",
+//     "types": [
+//       "node",
+//       "@nomicfoundation/hardhat-ethers/internal/type-extensions"
+//     ]
+//   },
+//   "include": [
+//     "hardhat.config.ts",
+//     "scripts/**/*.ts",
+//     "test/**/*.ts",
+//     "ignition/**/*.ts"
+// , "scripts/deploy-arbitrum-sepolia.cjs"  ],
+//   "exclude": [
+//     "node_modules",
+//     "dist"
+//   ]
+// }

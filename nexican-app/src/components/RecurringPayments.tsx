@@ -11,11 +11,57 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useNexus } from "@/providers/NexusProvider";
-import { type SUPPORTED_CHAINS_IDS } from "@avail-project/nexus-core";
+import {
+  SUPPORTED_CHAINS,
+  type SUPPORTED_CHAINS_IDS,
+} from "@avail-project/nexus-core";
 import type { Address } from "viem";
 import { isAddress } from "viem";
 
 type SupportedChainKey = "sepolia" | "arbitrumSepolia";
+
+// Set default chain based on campaign
+const getChainFromCampaign = (chainName: string): SUPPORTED_CHAINS_IDS => {
+  switch (chainName.toLowerCase()) {
+    case "arbitrum":
+      return SUPPORTED_CHAINS.ARBITRUM_SEPOLIA;
+    case "ethereum":
+      return SUPPORTED_CHAINS.SEPOLIA;
+    case "polygon":
+      return SUPPORTED_CHAINS.POLYGON_AMOY;
+    case "base":
+      return SUPPORTED_CHAINS.BASE_SEPOLIA;
+    case "optimism":
+      return SUPPORTED_CHAINS.OPTIMISM_SEPOLIA;
+    default:
+      return SUPPORTED_CHAINS.SEPOLIA;
+  }
+};
+
+// Map campaign chain name to component's SupportedChainKey
+const getSupportedChainKeyFromCampaign = (
+  chainName: string
+): SupportedChainKey => {
+  switch (chainName.toLowerCase()) {
+    case "arbitrum":
+      return "arbitrumSepolia";
+    // Fallback to Sepolia for any other chain names for now
+    default:
+      return "sepolia";
+  }
+};
+
+interface Campaign {
+  campaignId: string;
+  name: string;
+  userAddress: string;
+  chain: string;
+}
+
+interface RecurringSubscriptionFormProps {
+  campaign: Campaign;
+  onSuccess: () => void;
+}
 
 const CHAIN_CONFIG: Record<
   SupportedChainKey,
@@ -74,12 +120,18 @@ const EIP7702_DELEGATION_MANAGER_ABI = [
   },
 ] as const;
 
-export default function RecurringPayments() {
+export default function RecurringPayments({
+  campaign,
+  onSuccess,
+}: RecurringSubscriptionFormProps) {
+  const [campaignChain, setCampaignChain] =
+    useState<SUPPORTED_CHAINS_IDS | null>(getChainFromCampaign(campaign.chain));
   const { address, isConnected } = useAccount();
   const { nexusSDK } = useNexus();
-  const [destinationChain, setDestinationChain] =
-    useState<SupportedChainKey>("sepolia");
-  const [recipient, setRecipient] = useState("");
+  const [destinationChain, setDestinationChain] = useState<SupportedChainKey>(
+    getSupportedChainKeyFromCampaign(campaign.chain)
+  );
+  const [recipient, setRecipient] = useState(campaign.userAddress || "");
   const [amountPerInterval, setAmountPerInterval] = useState("");
   const [periods, setPeriods] = useState("6");
   const [frequency, setFrequency] = useState<"weekly" | "monthly">("monthly");
@@ -122,6 +174,12 @@ export default function RecurringPayments() {
   }, [frequency]);
 
   const periodsNum = parseInt(periods);
+
+  // Lock destination and recipient from campaign props
+  useEffect(() => {
+    setDestinationChain(getSupportedChainKeyFromCampaign(campaign.chain));
+    setRecipient(campaign.userAddress || "");
+  }, [campaign]);
 
   const handleSubmit = async () => {
     if (!isConnected || !address) {
@@ -264,6 +322,13 @@ export default function RecurringPayments() {
           <CardTitle>Create Recurring Payment</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="text-blue-600">
+            Campaign: <span className="font-semibold">{campaign.name}</span>
+          </div>
+          <div className="text-blue-600">
+            Target Chain:{" "}
+            <span className="font-semibold">{campaign.chain}</span>
+          </div>
           {/* Chain Selection */}
           <div className="space-y-2">
             <Label htmlFor="chain">Destination Chain</Label>
@@ -271,9 +336,8 @@ export default function RecurringPayments() {
               id="chain"
               className="w-full p-2 border rounded-md"
               value={destinationChain}
-              onChange={(e) =>
-                setDestinationChain(e.target.value as SupportedChainKey)
-              }
+              onChange={() => {}}
+              disabled
             >
               <option value="sepolia">Sepolia</option>
               <option value="arbitrumSepolia">Arbitrum Sepolia</option>
@@ -288,7 +352,10 @@ export default function RecurringPayments() {
               type="text"
               placeholder="0x..."
               value={recipient}
-              onChange={(e) => setRecipient(e.target.value)}
+              onChange={() => {}}
+              readOnly
+              disabled
+              className="text-black bg-gray-50"
             />
           </div>
 
@@ -304,6 +371,8 @@ export default function RecurringPayments() {
               placeholder="0.00"
               value={amountPerInterval}
               onChange={(e) => setAmountPerInterval(e.target.value)}
+              onWheel={(e) => e.currentTarget.blur()}
+              className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
           </div>
 
