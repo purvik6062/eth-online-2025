@@ -41,9 +41,14 @@ const ChainSelect = ({
     >
       <div className="flex flex-col items-start gap-y-1">
         {chainLabel && (
-          <Label className="text-sm font-semibold">{chainLabel}</Label>
+          <Label className="text-black text-sm font-semibold">
+            {chainLabel}
+          </Label>
         )}
-        <SelectTrigger disabled={disabled}>
+        <SelectTrigger
+          disabled={disabled}
+          className={disabled ? "bg-gray-50 text-gray-800" : ""}
+        >
           <SelectValue>
             {!!selectedChain && (
               <div className="flex items-center gap-x-2">
@@ -54,7 +59,7 @@ const ChainSelect = ({
                   height={24}
                   className="rounded-full"
                 />
-                <p className="test-sm">
+                <p className={`test-sm ${disabled ? "text-gray-800" : ""}`}>
                   {CHAIN_METADATA[selectedChain]?.name}
                 </p>
               </div>
@@ -76,7 +81,7 @@ const ChainSelect = ({
                     height={24}
                     className="rounded-full"
                   />
-                  <p className="test-sm">
+                  <p className="test-sm text-gray-800">
                     {chainData[chainId]?.name}
                   </p>
                 </div>

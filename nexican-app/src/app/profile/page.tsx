@@ -421,6 +421,10 @@ export default function ProfilePage() {
                     <Target className="w-4 h-4 mr-2" />
                     DAO Panel
                   </Button>
+                  <Button variant="outline" className="w-full" onClick={() => window.location.href = '/manage-payment'}>
+                    <Target className="w-4 h-4 mr-2" />
+                    My contributions
+                  </Button>
                 </div>
               </Card>
 
