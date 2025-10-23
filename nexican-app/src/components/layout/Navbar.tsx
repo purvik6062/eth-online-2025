@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Menu, X, Wallet, User, Settings } from 'lucide-react';
+import { Menu, X, Wallet, CircleUserRound, Settings } from 'lucide-react';
 import ConnectWallet from '../blocks/connect-wallet';
 import NexusInitButton from '../nexus-init';
 
@@ -44,11 +44,11 @@ export default function Navbar() {
           </div>
 
           {/* Right side buttons */}
-          <div className="hidden md:flex items-center space-x-4">
-              <ConnectWallet />
-              <NexusInitButton />
+          <div className="hidden md:flex items-center gap-2">
+            <ConnectWallet />
+            <NexusInitButton />
             <Link href="/profile" className="p-2 text-foreground hover:text-primary transition-colors">
-              <User className="w-5 h-5" />
+              <CircleUserRound className="w-8 h-8" />
             </Link>
           </div>
 

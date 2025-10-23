@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { User, Wallet, Target, TrendingUp, Clock, DollarSign, Users, Activity } from 'lucide-react';
+import { User, Wallet, Target, TrendingUp, Clock, DollarSign, Users, Activity, Share2, ExternalLink, Copy, Check } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Card from '@/components/ui/card-new';
@@ -9,6 +9,34 @@ import Button from '@/components/ui/button-new';
 import ProgressBar from '@/components/ui/ProgressBar';
 import { useAccount } from 'wagmi';
 import UnifiedBalance from '@/components/UnifiedBalance';
+import CampaignSplitsForm from '@/components/splits/CampaignSplitsForm';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+
+interface Campaign {
+  campaignId: string;
+  name: string;
+  description: string;
+  goal: number;
+  raised: number;
+  deadline: string;
+  backers: number;
+  chain: string;
+  status: 'active' | 'completed' | 'pending_verification' | 'rejected' | 'approved';
+  createdAt: string;
+  teamMembers?: Array<{
+    id: string;
+    name: string;
+    wallet: string;
+    percentage: number;
+  }>;
+}
 
 interface UserProfile {
   user: {
@@ -32,8 +60,8 @@ interface UserProfile {
     netBalance: number;
   };
   campaigns: {
-    created: any[];
-    contributed: any[];
+    created: Campaign[];
+    contributed: Campaign[];
   };
   recentActivity: any[];
 }
@@ -42,6 +70,9 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
+  const [splitFundsOpen, setSplitFundsOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   const { address } = useAccount();
 
   useEffect(() => {
@@ -89,6 +120,53 @@ export default function ProfilePage() {
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'approved':
+      case 'completed':
+        return 'bg-green-100 text-green-800';
+      case 'pending_verification':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'rejected':
+        return 'bg-red-100 text-red-800';
+      case 'active':
+        return 'bg-blue-100 text-blue-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'pending_verification':
+        return 'Pending Verification';
+      case 'approved':
+        return 'Active';
+      default:
+        return status.charAt(0).toUpperCase() + status.slice(1);
+    }
+  };
+
+  const calculateRemainingAmount = (goal: number, raised: number) => {
+    return Math.max(0, goal - raised);
+  };
+
+  const calculateProgress = (goal: number, raised: number) => {
+    return Math.min(100, (raised / goal) * 100);
+  };
+
+  const handleSplitFunds = (campaign: Campaign) => {
+    setSelectedCampaign(campaign);
+    setSplitFundsOpen(true);
+  };
+
+  const handleSplitComplete = () => {
+    setSplitFundsOpen(false);
+    setSelectedCampaign(null);
+    // Refresh profile data
+    fetchProfile();
   };
 
   if (loading) {
@@ -159,8 +237,20 @@ export default function ProfilePage() {
                         <Wallet className="w-4 h-4 mr-1" />
                         {profile.user.walletAddress}
                       </span>
-                      <div className="cursor-pointer" onClick={() => navigator.clipboard.writeText(profile.user.walletAddress)}>Copy</div>
-                      {/* <span>Joined {formatDate(profile.user.joinedAt)}</span> */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          navigator.clipboard.writeText(profile.user.walletAddress);
+                          setCopied(true);
+                          setTimeout(() => {
+                            setCopied(false);
+                          }, 2000);
+                        }}
+                        className="btn-outline text-xs px-3 cursor-pointer"
+                      >
+                        {copied ? <><Check className="w-4 h-4 mr-1 text-green-500" /> Copied</> : <><Copy className="w-4 h-4 mr-1" /> Copy</>}
+                      </Button>
                     </div>
                   </div>
                   {profile.user.verified && (
@@ -172,9 +262,7 @@ export default function ProfilePage() {
               </Card>
 
               {/* Unified Balance */}
-              <>
-                <UnifiedBalance />
-              </>
+              <UnifiedBalance />
 
               {/* Stats Overview */}
               <Card>
@@ -204,37 +292,115 @@ export default function ProfilePage() {
                 </div>
               </Card>
 
-              {/* Recent Activity */}
+              {/* Created Campaigns - Enhanced */}
               <Card>
-                <h3 className="text-xl font-bold text-foreground mb-6 flex items-center">
-                  <Clock className="w-6 h-6 mr-3" />
-                  Recent Activity
-                </h3>
-                <div className="space-y-4">
-                  {profile.recentActivity.map((activity, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 border border-foreground/20 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${activity.type === 'campaign_created'
-                          ? 'bg-blue-100 text-blue-600'
-                          : 'bg-green-100 text-green-600'
-                          }`}>
-                          {activity.type === 'campaign_created' ? <Target className="w-4 h-4" /> : <TrendingUp className="w-4 h-4" />}
-                        </div>
-                        <div>
-                          <p className="font-medium text-foreground">
-                            {activity.type === 'campaign_created' ? 'Created campaign' : 'Contributed to campaign'}
-                          </p>
-                          <p className="text-sm text-foreground/70">{activity.campaignName}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-foreground">{formatAmount(activity.amount)}</p>
-                        <p className="text-sm text-foreground/60">{formatDate(activity.timestamp)}</p>
-                      </div>
-                    </div>
-                  ))}
+                <div className="mb-6">
+                  <h3 className="text-xl font-bold text-foreground flex items-center">
+                    <Target className="w-6 h-6 mr-3" />
+                    Your Campaigns
+                  </h3>
                 </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {profile.campaigns.created.map((campaign) => {
+                    const remainingAmount = calculateRemainingAmount(campaign.goal, campaign.raised);
+                    const progress = calculateProgress(campaign.goal, campaign.raised);
+
+                    return (
+                      <div key={campaign.campaignId} className="border border-foreground/20 rounded-lg p-6 hover:shadow-md transition-shadow">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <h4 className="font-bold text-lg text-foreground mb-2 line-clamp-2">
+                              {campaign.name}
+                            </h4>
+                            <p className="text-foreground/70 text-sm line-clamp-2 mb-3">
+                              {campaign.description}
+                            </p>
+                            <div className="flex items-center space-x-2 mb-3">
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(campaign.status)}`}>
+                                {getStatusText(campaign.status)}
+                              </span>
+                              <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
+                                {campaign.chain}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex space-x-2">
+                            {campaign.raised > 0 && (
+                              <Button
+                                size="sm"
+                                onClick={() => handleSplitFunds(campaign)}
+                                className="flex items-center"
+                              >
+                                <Share2 className="w-4 h-4 mr-1" />
+                                Split
+                              </Button>
+                            )}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => window.location.href = `/campaigns/${campaign.campaignId}`}
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <div>
+                            <div className="flex justify-between text-sm text-foreground/70 mb-2">
+                              <span>Progress</span>
+                              <span>{progress.toFixed(1)}%</span>
+                            </div>
+                            <ProgressBar progress={progress} size="sm" />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <div className="text-foreground/70 mb-1">Raised</div>
+                              <div className="font-bold text-green-600">{formatAmount(campaign.raised)}</div>
+                            </div>
+                            <div>
+                              <div className="text-foreground/70 mb-1">Goal</div>
+                              <div className="font-bold text-foreground">{formatAmount(campaign.goal)}</div>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <div className="text-foreground/70 mb-1">Remaining</div>
+                              <div className="font-bold text-orange-600">{formatAmount(remainingAmount)}</div>
+                            </div>
+                            <div>
+                              <div className="text-foreground/70 mb-1">Backers</div>
+                              <div className="font-bold text-foreground">{campaign.backers}</div>
+                            </div>
+                          </div>
+
+                          <div className="pt-2 border-t border-foreground/10">
+                            <div className="flex justify-between text-xs text-foreground/60">
+                              <span>Created {formatDate(campaign.createdAt)}</span>
+                              <span>Ends {formatDate(campaign.deadline)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {profile.campaigns.created.length === 0 && (
+                  <div className="text-center py-12">
+                    <Target className="w-12 h-12 text-foreground/30 mx-auto mb-4" />
+                    <p className="text-foreground/60 mb-4">No campaigns created yet</p>
+                    <Button onClick={() => window.location.href = '/create'}>
+                      <Target className="w-4 h-4 mr-2" />
+                      Create Your First Campaign
+                    </Button>
+                  </div>
+                )}
               </Card>
+
             </div>
 
             {/* Sidebar */}
@@ -258,28 +424,37 @@ export default function ProfilePage() {
                 </div>
               </Card>
 
-              {/* Created Campaigns */}
+              {/* Recent Activity */}
               <Card>
-                <h3 className="font-semibold text-foreground mb-4">Your Campaigns</h3>
+                <h3 className="font-semibold text-foreground mb-4 flex items-center">
+                  <Clock className="w-5 h-5 mr-2" />
+                  Recent Activity
+                </h3>
                 <div className="space-y-3">
-                  {profile.campaigns.created.map((campaign) => (
-                    <div key={campaign.campaignId} className="p-3 border border-foreground/20 rounded-lg">
-                      <h4 className="font-medium text-foreground text-sm mb-1">{campaign.name}</h4>
-                      <div className="flex justify-between items-center text-xs text-foreground/60">
-                        <span>{formatAmount(campaign.raised)} raised</span>
-                        <span className={`px-2 py-1 rounded-full ${campaign.status === 'approved'
-                          ? 'bg-green-100 text-green-800'
-                          : campaign.status === 'pending_verification'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-red-100 text-red-800'
+                  {profile.recentActivity.slice(0, 4).map((activity, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 border border-foreground/20 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${activity.type === 'campaign_created'
+                          ? 'bg-blue-100 text-blue-600'
+                          : 'bg-green-100 text-green-600'
                           }`}>
-                          {campaign.status}
-                        </span>
+                          {activity.type === 'campaign_created' ? <Target className="w-3 h-3" /> : <TrendingUp className="w-3 h-3" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-foreground text-sm">
+                            {activity.type === 'campaign_created' ? 'Created campaign' : 'Contributed to campaign'}
+                          </p>
+                          <p className="text-xs text-foreground/70 truncate">{activity.campaignName}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-foreground text-sm">{formatAmount(activity.amount)}</p>
+                        <p className="text-xs text-foreground/60">{formatDate(activity.timestamp)}</p>
                       </div>
                     </div>
                   ))}
-                  {profile.campaigns.created.length === 0 && (
-                    <p className="text-foreground/60 text-sm">No campaigns created yet</p>
+                  {profile.recentActivity.length === 0 && (
+                    <p className="text-foreground/60 text-sm text-center py-4">No recent activity</p>
                   )}
                 </div>
               </Card>
@@ -289,6 +464,29 @@ export default function ProfilePage() {
       </main>
 
       <Footer />
+
+      {/* Campaign Split Funds Modal */}
+      <Dialog open={splitFundsOpen} onOpenChange={setSplitFundsOpen}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              Split Funds for {selectedCampaign?.name}
+            </DialogTitle>
+            <DialogDescription>
+              Distribute the raised funds ({formatAmount(selectedCampaign?.raised || 0)}) among your team members.
+              Maximum amount available: {formatAmount(selectedCampaign?.raised || 0)}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedCampaign && (
+            <CampaignSplitsForm
+              campaignId={selectedCampaign.campaignId}
+              campaignName={selectedCampaign.name}
+              maxAmount={selectedCampaign.raised}
+              onSplitComplete={handleSplitComplete}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

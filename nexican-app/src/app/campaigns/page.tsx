@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, Filter, ArrowRight, Clock, Shield } from 'lucide-react';
+import { Search, Filter, ArrowRight, Clock, Shield, ChevronLeft, ChevronRight } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Card from '@/components/ui/card-new';
@@ -48,6 +48,9 @@ export default function CampaignsPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const campaignsPerPage = 9;
 
   useEffect(() => {
     fetchCampaigns();
@@ -61,6 +64,7 @@ export default function CampaignsPage() {
 
       if (result.success) {
         setCampaigns(result.data);
+        setTotalPages(Math.ceil(result.data.length / campaignsPerPage));
       } else {
         setError(result.error);
       }
@@ -70,6 +74,16 @@ export default function CampaignsPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Calculate pagination
+  const startIndex = (currentPage - 1) * campaignsPerPage;
+  const endIndex = startIndex + campaignsPerPage;
+  const currentCampaigns = campaigns.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   if (loading) {
@@ -201,7 +215,7 @@ export default function CampaignsPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {campaigns.map((campaign) => (
+              {currentCampaigns.map((campaign) => (
                 <div key={campaign.campaignId} className="relative">
                   <CampaignCard
                     campaign={{
@@ -226,15 +240,70 @@ export default function CampaignsPage() {
                 </div>
               ))}
             </div>
-          </div>
 
-          {/* Load More */}
-          {/* <div className="text-center">
-            <Button variant="outline" size="lg">
-              Load More Campaigns
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-          </div> */}
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-12 flex items-center justify-center">
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="btn-outline"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Previous
+                  </Button>
+
+                  <div className="flex items-center space-x-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                      // Show first page, last page, current page, and pages around current
+                      const shouldShow =
+                        page === 1 ||
+                        page === totalPages ||
+                        Math.abs(page - currentPage) <= 1;
+
+                      if (!shouldShow) {
+                        // Show ellipsis if there's a gap
+                        const prevPage = Array.from({ length: totalPages }, (_, i) => i + 1)
+                          .find(p => p < page && Math.abs(p - currentPage) <= 1);
+                        if (prevPage && page - prevPage > 1) {
+                          return (
+                            <span key={`ellipsis-${page}`} className="px-2 text-foreground/60">
+                              ...
+                            </span>
+                          );
+                        }
+                        return null;
+                      }
+
+                      return (
+                        <Button
+                          key={page}
+                          variant={currentPage === page ? "primary" : "outline"}
+                          onClick={() => handlePageChange(page)}
+                          className={currentPage === page ? "btn-neobrutal" : "btn-outline"}
+                          size="sm"
+                        >
+                          {page}
+                        </Button>
+                      );
+                    })}
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="btn-outline"
+                  >
+                    Next
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Stats Section */}
           {/* <div className="mt-16 py-12 gradient-primary text-white rounded-2xl">
