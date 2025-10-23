@@ -23,7 +23,7 @@ import {
 import IntentModal from "@/components/blocks/intent-modal";
 import AllowanceModal from "@/components/blocks/allowance-modal";
 import useListenTransaction from "@/hooks/useListenTransactions";
-import { toast } from 'react-toastify';
+import { toast } from "react-toastify";
 
 type ShareMode = "equal" | "percent" | "custom";
 type Recipient = { address: string; share: string };
@@ -46,7 +46,10 @@ interface CampaignSplitsFormProps {
   onSuccess: () => void;
 }
 
-export default function CampaignSplitsForm({ campaign, onSuccess }: CampaignSplitsFormProps) {
+export default function CampaignSplitsForm({
+  campaign,
+  onSuccess,
+}: CampaignSplitsFormProps) {
   const { nexusSDK, intentRefCallback, allowanceRefCallback, handleInit } =
     useNexus();
   const useSponsoredApprovals =
@@ -55,14 +58,16 @@ export default function CampaignSplitsForm({ campaign, onSuccess }: CampaignSpli
   // Set default chain based on campaign
   const getChainFromCampaign = (chainName: string): SUPPORTED_CHAINS_IDS => {
     switch (chainName.toLowerCase()) {
-      case 'arbitrum':
-        return SUPPORTED_CHAINS.ARBITRUM;
-      case 'ethereum':
-        return SUPPORTED_CHAINS.ETHEREUM;
-      case 'polygon':
-        return SUPPORTED_CHAINS.POLYGON;
-      case 'sepolia':
+      case "arbitrum":
+        return SUPPORTED_CHAINS.ARBITRUM_SEPOLIA;
+      case "ethereum":
         return SUPPORTED_CHAINS.SEPOLIA;
+      case "polygon":
+        return SUPPORTED_CHAINS.POLYGON_AMOY;
+      case "base":
+        return SUPPORTED_CHAINS.BASE_SEPOLIA;
+      case "optimism":
+        return SUPPORTED_CHAINS.OPTIMISM_SEPOLIA;
       default:
         return SUPPORTED_CHAINS.SEPOLIA;
     }
@@ -87,9 +92,9 @@ export default function CampaignSplitsForm({ campaign, onSuccess }: CampaignSpli
   // Initialize recipients with campaign team members
   useEffect(() => {
     if (campaign.teamMembers && campaign.teamMembers.length > 0) {
-      const teamRecipients = campaign.teamMembers.map(member => ({
+      const teamRecipients = campaign.teamMembers.map((member) => ({
         address: member.wallet,
-        share: mode === "percent" ? member.percentage.toString() : ""
+        share: mode === "percent" ? member.percentage.toString() : "",
       }));
       setRecipients(teamRecipients);
     } else {
@@ -97,6 +102,11 @@ export default function CampaignSplitsForm({ campaign, onSuccess }: CampaignSpli
       setRecipients([{ address: campaign.userAddress, share: "" }]);
     }
   }, [campaign, mode]);
+
+  // Re-sync chain when campaign changes and lock it
+  useEffect(() => {
+    setChain(getChainFromCampaign(campaign.chain));
+  }, [campaign]);
 
   // Only listen to transactions when we're actually submitting
   const { processing, explorerURL } = useListenTransaction({
@@ -301,27 +311,27 @@ export default function CampaignSplitsForm({ campaign, onSuccess }: CampaignSpli
 
         // Record contribution in database
         try {
-          const response = await fetch('/api/contributions', {
-            method: 'POST',
+          const response = await fetch("/api/contributions", {
+            method: "POST",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({
               campaignId: campaign.campaignId,
-              userId: 'user', // This should be the actual user address
+              userId: "user", // This should be the actual user address
               amount: totalAmountNeeded,
               transactionHash: `0x${Math.random().toString(16).substr(2, 64)}`, // Mock transaction hash
-              type: 'one-time',
+              type: "one-time",
             }),
           });
 
           const result = await response.json();
           if (result.success) {
-            toast.success('Contribution recorded successfully!');
+            toast.success("Contribution recorded successfully!");
             onSuccess();
           }
         } catch (dbError) {
-          console.error('Error recording contribution:', dbError);
+          console.error("Error recording contribution:", dbError);
         }
       }
 
@@ -396,7 +406,8 @@ export default function CampaignSplitsForm({ campaign, onSuccess }: CampaignSpli
               Campaign: <span className="font-semibold">{campaign.name}</span>
             </div>
             <div className="text-blue-600">
-              Target Chain: <span className="font-semibold">{campaign.chain}</span>
+              Target Chain:{" "}
+              <span className="font-semibold">{campaign.chain}</span>
             </div>
             {computedAmounts.length > 0 && (
               <div className="text-blue-600">
@@ -424,8 +435,9 @@ export default function CampaignSplitsForm({ campaign, onSuccess }: CampaignSpli
               <Label>Chain</Label>
               <ChainSelect
                 selectedChain={chain ?? SUPPORTED_CHAINS.SEPOLIA}
-                // handleSelect={setChain}
+                // handleSelect intentionally disabled to lock chain
                 isTestnet
+                disabled={true}
               />
             </div>
             <div className="grid gap-2">
@@ -442,7 +454,9 @@ export default function CampaignSplitsForm({ campaign, onSuccess }: CampaignSpli
               <Input
                 value={totalAmount}
                 onChange={(e) => setTotalAmount(e.target.value)}
+                onWheel={(e) => e.currentTarget.blur()}
                 placeholder="100"
+                className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
             </div>
           </div>
@@ -463,7 +477,7 @@ export default function CampaignSplitsForm({ campaign, onSuccess }: CampaignSpli
           </div> */}
 
           <div className="grid gap-3">
-            <Label>Recipients (Campaign Team Members)</Label>
+            <Label>Recipient</Label>
             <div className="grid gap-3">
               {recipients.map((r, idx) => (
                 <div key={idx} className="grid grid-cols-12 gap-3 items-end">
@@ -472,10 +486,11 @@ export default function CampaignSplitsForm({ campaign, onSuccess }: CampaignSpli
                     <Input
                       id={`addr-${idx}`}
                       value={r.address}
-                      // onChange={(e) =>
-                      //   updateRecipient(idx, "address", e.target.value)
-                      // }
+                      onChange={() => {}}
+                      readOnly
+                      disabled
                       placeholder="0x..."
+                      className="text-gray-800 bg-gray-50"
                     />
                   </div>
                   {/* <div className="col-span-2">
