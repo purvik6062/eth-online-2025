@@ -44,10 +44,10 @@ export async function GET(
 // PUT /api/campaigns/[id] - Update a campaign
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
 
     const campaignsCollection = await getCollection("campaigns");
@@ -91,10 +91,10 @@ export async function PUT(
 // DELETE /api/campaigns/[id] - Delete a campaign
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     const campaignsCollection = await getCollection("campaigns");
     const result = await campaignsCollection.deleteOne({
