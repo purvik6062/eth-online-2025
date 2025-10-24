@@ -49,25 +49,33 @@ interface UnifiedBalanceProps {
  * Can be customized with various props for different use cases
  */
 export const UnifiedBalance: React.FC<UnifiedBalanceProps> = () => {
-  const { unifiedBalance, isLoading, error, refetch, totalBalance, formatBalance } = useUnifiedBalance();
+  const {
+    unifiedBalance,
+    isLoading,
+    error,
+    refetch,
+    totalBalance,
+    formatBalance,
+  } = useUnifiedBalance();
 
   const balanceData = unifiedBalance
     ? {
-      totalBalance: totalBalance,
-      change24h: 0, // This would need to be calculated from historical data
-      chains: unifiedBalance
-        .filter((token) => parseFloat(token.balance) > 0)
-        .map((token) => ({
-          name: token.symbol,
-          balance: token.balanceInFiat,
-          symbol: token.symbol,
-        })),
-    }
+        totalBalance: totalBalance,
+        change24h: 0, // This would need to be calculated from historical data
+        assets: unifiedBalance
+          .filter((token) => parseFloat(token.balance) > 0)
+          .map((token) => ({
+            symbol: token.symbol,
+            balance: token.balance,
+            balanceInFiat: token.balanceInFiat,
+            breakdown: token.breakdown || [],
+          })),
+      }
     : {
-      totalBalance: 0,
-      change24h: 0,
-      chains: [],
-    };
+        totalBalance: 0,
+        change24h: 0,
+        assets: [],
+      };
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -81,9 +89,7 @@ export const UnifiedBalance: React.FC<UnifiedBalanceProps> = () => {
       ) : error ? (
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
-            <p className="text-muted-foreground mb-4">
-              Unable to load balance
-            </p>
+            <p className="text-muted-foreground mb-4">Unable to load balance</p>
             <p className="text-sm text-muted-foreground/70">{error}</p>
           </div>
         </div>

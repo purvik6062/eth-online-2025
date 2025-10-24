@@ -666,28 +666,32 @@ export default function ManagePayment() {
               <CardTitle>Your Created Subscriptions</CardTitle>
             </CardHeader>
             <CardContent>
-              {isLoadingUserSubscriptions ? (
+              {/* {isLoadingUserSubscriptions ? (
                 <div className="flex items-center justify-center p-8">
                   <RefreshCw className="h-6 w-6 animate-spin" />
                 </div>
-              ) : userSubscriptionIds && userSubscriptionIds.length > 0 ? (
+              ) : userSubscriptionIds && userSubscriptionIds.length > 0 ? ( */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {userSubscriptionIds.map((id) => (
+                  {userSubscriptionIds && userSubscriptionIds.length > 0 ? userSubscriptionIds.map((id) => (
                     <SubscriptionCard
                       key={`${id}-${refreshKey}`}
                       subscriptionId={Number(id)}
                       chain={selectedChain}
                       onUpdate={handleSubscriptionUpdate}
                     />
-                  ))}
+                  )) : <div className="text-center p-8">
+                    <p className="text-gray-600 mb-4">
+                      No subscriptions created yet
+                    </p>
+                  </div>}
                 </div>
-              ) : (
+              {/* ) : (
                 <div className="text-center p-8">
                   <p className="text-gray-600 mb-4">
                     No subscriptions created yet
                   </p>
                 </div>
-              )}
+              )} */}
             </CardContent>
           </Card>
         </TabsContent>
