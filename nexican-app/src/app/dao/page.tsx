@@ -107,7 +107,6 @@ export default function DAOPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar />
         <main className="py-8 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
             <div className="text-center py-12">
@@ -116,7 +115,6 @@ export default function DAOPage() {
             </div>
           </div>
         </main>
-        <Footer />
       </div>
     );
   }
@@ -124,7 +122,6 @@ export default function DAOPage() {
   if (error) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar />
         <main className="py-8 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
             <div className="text-center py-12">
@@ -133,14 +130,12 @@ export default function DAOPage() {
             </div>
           </div>
         </main>
-        <Footer />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
 
       <main className="py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
@@ -336,8 +331,6 @@ export default function DAOPage() {
           )}
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }

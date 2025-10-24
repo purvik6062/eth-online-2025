@@ -17,12 +17,12 @@ const features = [
     description:
       "Fund projects across multiple blockchains seamlessly with Avail Nexus SDK integration.",
   },
-  {
-    icon: Shield,
-    title: "Transparent Escrow",
-    description:
-      "Smart contract-based escrow ensures funds are released only when milestones are met.",
-  },
+  // {
+  //   icon: Shield,
+  //   title: "Transparent Escrow",
+  //   description:
+  //     "Smart contract-based escrow ensures funds are released only when milestones are met.",
+  // },
   {
     icon: Zap,
     title: "EIP-7702 Automation",
@@ -40,8 +40,6 @@ const features = [
 export default function Home() {
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
-
       <main>
         {/* Hero Section */}
         <section className="relative pt-16 pb-10 px-4 sm:px-6 lg:px-8 overflow-hidden">
@@ -131,7 +129,7 @@ export default function Home() {
                 automated, and cross-chain funding.
               </p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {features.map((feature, index) => {
                 const Icon = feature.icon;
                 return (
@@ -180,7 +178,7 @@ export default function Home() {
         </section> */}
 
         {/* Stats Section */}
-        <section className="py-16 px-4 sm:px-6 lg:px-8 gradient-primary text-white">
+        {/* <section className="py-16 px-4 sm:px-6 lg:px-8 gradient-primary text-white">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
@@ -209,12 +207,12 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* CTA Section */}
         <section className="py-16 px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto text-center">
-            <Card className="gradient-secondary">
+            <Card className="bg-primary gradient-secondary">
               <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
                 Ready to Launch Your Campaign?
               </h2>
@@ -242,8 +240,6 @@ export default function Home() {
           </div>
         </section>
       </main>
-
-      <Footer />
     </div>
   );
 }

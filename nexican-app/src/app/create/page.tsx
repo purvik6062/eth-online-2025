@@ -165,7 +165,6 @@ export default function CreateCampaign() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
 
       <main className="py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
@@ -519,8 +518,6 @@ export default function CreateCampaign() {
           </form>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }

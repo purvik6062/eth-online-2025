@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Calendar, ArrowLeft, Loader2 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -27,11 +27,11 @@ interface Campaign {
   backers: number;
   chain: string;
   status:
-    | "active"
-    | "completed"
-    | "pending_verification"
-    | "rejected"
-    | "approved";
+  | "active"
+  | "completed"
+  | "pending_verification"
+  | "rejected"
+  | "approved";
   userAddress: string;
   milestones: Array<{
     id: string;
@@ -57,6 +57,7 @@ export default function ContributionPage() {
   const { address } = useAccount();
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const campaignId = params.id as string;
 
   const [campaign, setCampaign] = useState<Campaign | null>(null);
@@ -77,6 +78,14 @@ export default function ContributionPage() {
     fetchCampaign();
     fetchSubscriptions();
   }, [campaignId, address]);
+
+  // Handle query string for tab selection
+  useEffect(() => {
+    const tab = searchParams.get('tab') as ContributionTab;
+    if (tab && (tab === 'one-time' || tab === 'recurring')) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   const fetchCampaign = async () => {
     try {
@@ -118,11 +127,18 @@ export default function ContributionPage() {
     toast.success("Subscription created successfully!");
   };
 
+  const handleTabChange = (tab: ContributionTab) => {
+    setActiveTab(tab);
+    // Update URL with query string
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', tab);
+    router.replace(url.pathname + url.search, { scroll: false });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar />
-        <main className="py-8 px-4 sm:px-6 lg:px-8">
+        <main className="py-8 px-4 sm:px-6 lg:px-8 min-h-screen">
           <div className="max-w-4xl mx-auto">
             <div className="text-center py-12">
               <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4" />
@@ -130,7 +146,6 @@ export default function ContributionPage() {
             </div>
           </div>
         </main>
-        <Footer />
       </div>
     );
   }
@@ -138,7 +153,6 @@ export default function ContributionPage() {
   if (error || !campaign) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar />
         <main className="py-8 px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
             <div className="text-center py-12">
@@ -149,7 +163,6 @@ export default function ContributionPage() {
             </div>
           </div>
         </main>
-        <Footer />
       </div>
     );
   }
@@ -157,7 +170,6 @@ export default function ContributionPage() {
   if (!address) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar />
         <main className="py-8 px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
             <div className="text-center py-12">
@@ -168,7 +180,6 @@ export default function ContributionPage() {
             </div>
           </div>
         </main>
-        <Footer />
       </div>
     );
   }
@@ -181,7 +192,6 @@ export default function ContributionPage() {
   if (isTeamMember) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar />
         <main className="py-8 px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
             <div className="text-center py-12">
@@ -192,15 +202,12 @@ export default function ContributionPage() {
             </div>
           </div>
         </main>
-        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-
+    <div className="min-h-screen bg-background">      
       <main className="py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
@@ -214,7 +221,7 @@ export default function ContributionPage() {
               Back to Campaign
             </Button>
 
-            <div className="flex items-center mb-2">
+            <div className="flex items-center py-4">
               <Calendar className="w-6 h-6 mr-3 text-primary" />
               <h1 className="text-3xl font-bold text-foreground">
                 Contribute to {campaign.name}
@@ -222,7 +229,7 @@ export default function ContributionPage() {
             </div>
           </div>
 
-          <div className="py-12">
+          <div className="pb-12">
             <UnifiedBalance />
           </div>
 
@@ -231,22 +238,20 @@ export default function ContributionPage() {
             <div className="border-b border-foreground/20">
               <nav className="flex space-x-8 px-6">
                 <button
-                  onClick={() => setActiveTab("one-time")}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === "one-time"
-                      ? "border-primary text-primary"
-                      : "border-transparent text-foreground/70 hover:text-foreground hover:border-foreground/20"
-                  }`}
+                  onClick={() => handleTabChange("one-time")}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === "one-time"
+                    ? "border-primary text-primary"
+                    : "border-transparent text-foreground/70 hover:text-foreground hover:border-foreground/20"
+                    }`}
                 >
                   One Time
                 </button>
                 <button
-                  onClick={() => setActiveTab("recurring")}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === "recurring"
-                      ? "border-primary text-primary"
-                      : "border-transparent text-foreground/70 hover:text-foreground hover:border-foreground/20"
-                  }`}
+                  onClick={() => handleTabChange("recurring")}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === "recurring"
+                    ? "border-primary text-primary"
+                    : "border-transparent text-foreground/70 hover:text-foreground hover:border-foreground/20"
+                    }`}
                 >
                   Recurring
                 </button>
@@ -306,8 +311,6 @@ export default function ContributionPage() {
           )}
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }

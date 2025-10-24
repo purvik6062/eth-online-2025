@@ -39,8 +39,7 @@ export default function Footer() {
   return (
     <footer className="bg-background border-t-2 border-foreground mt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
-          {/* Brand Section */}
+        {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center space-x-2 mb-4">
               <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center">
@@ -71,7 +70,6 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Links Sections */}
           {Object.entries(footerLinks).map(([title, links]) => (
             <div key={title}>
               <h3 className="font-semibold text-foreground mb-4">{title}</h3>
@@ -89,13 +87,13 @@ export default function Footer() {
               </ul>
             </div>
           ))}
-        </div>
+        </div> */}
 
         {/* Bottom Section */}
-        <div className="border-t-2 border-foreground/20 mt-8 pt-8">
+        <div className="">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="text-foreground/60 text-sm">
-              © 2024 Nexican. All rights reserved.
+              © 2025 Nexican. All rights reserved.
             </div>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <Link href="/privacy" className="text-foreground/60 hover:text-primary transition-colors text-sm">

@@ -103,18 +103,21 @@ export default function CampaignCard({ campaign }: CampaignCardProps) {
           </div>
         </div>
 
-        <div className="flex space-x-2">
-          <Button
-            variant="primary"
-            size="sm"
-            className="flex-1"
-            disabled={isCompleted || isCancelled}
-          >
-            {isCompleted ? 'Completed' : isCancelled ? 'Cancelled' : 'Contribute'}
-          </Button>
-          <Link href={`/campaigns/${campaign.id}`}>
-            <Button variant="outline" size="sm">
-              <ExternalLink className="w-4 h-4" />
+        <div className="flex space-x-2 justify-between w-full">
+          <Link href={`/campaigns/${campaign.id}/contribute?tab=one-time`} className="w-full">
+            <Button
+              variant="primary"
+              size="sm"
+              className="flex w-full justify-center items-center"
+              disabled={isCompleted || isCancelled}
+            >
+              {isCompleted ? 'Completed' : isCancelled ? 'Cancelled' : 'Contribute'}
+            </Button>
+          </Link>
+          <Link href={`/campaigns/${campaign.id}`} className="w-full">
+            <Button variant="outline" size="sm" className="flex w-full justify-center items-center">
+              View
+              <ExternalLink className="ml-2w-4 h-4" />
             </Button>
           </Link>
         </div>

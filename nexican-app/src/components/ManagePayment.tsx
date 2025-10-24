@@ -7,8 +7,8 @@ import {
   useWriteContract,
   useWaitForTransactionReceipt,
 } from "wagmi";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import Card from "@/components/ui/card-new";
+import Button from "@/components/ui/button-new";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -269,12 +269,10 @@ function SubscriptionCard({
 
   if (isLoadingSubscription || !subscription) {
     return (
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-center">
-            <RefreshCw className="h-6 w-6 animate-spin" />
-          </div>
-        </CardContent>
+      <Card hover={false}>
+        <div className="flex items-center justify-center p-8">
+          <RefreshCw className="h-8 w-8 animate-spin text-primary" />
+        </div>
       </Card>
     );
   }
@@ -301,54 +299,56 @@ function SubscriptionCard({
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span>Subscription #{subscriptionId}</span>
+    <Card className="w-full" hover={true}>
+      <div className="border-b-2 border-foreground pb-4 mb-6">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xl font-bold text-foreground">
+            Subscription #{subscriptionId}
+          </h3>
           <div className="flex gap-2">
             {sub.isActive ? (
-              <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
+              <span className="bg-green-500 text-background px-3 py-1 rounded-lg text-xs font-semibold border-2 border-foreground">
                 Active
               </span>
             ) : (
-              <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">
+              <span className="bg-red-500 text-background px-3 py-1 rounded-lg text-xs font-semibold border-2 border-foreground">
                 Inactive
               </span>
             )}
             {sub.isPaused && (
-              <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">
+              <span className="bg-yellow-500 text-background px-3 py-1 rounded-lg text-xs font-semibold border-2 border-foreground">
                 Paused
               </span>
             )}
           </div>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div className="space-y-1">
-            <Label className="text-gray-600 text-xs">Subscriber</Label>
-            <div className="flex items-center gap-2 bg-gray-50 px-2 py-1 rounded border">
-              <p className="font-mono text-xs flex-1" title={sub.subscriber}>
+        </div>
+      </div>
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <Label className="text-foreground font-semibold text-sm">Subscriber</Label>
+            <div className="flex items-center gap-2 bg-secondary border-2 border-foreground px-3 py-2 rounded-lg">
+              <p className="font-mono text-sm flex-1 text-foreground" title={sub.subscriber}>
                 {formatAddress(sub.subscriber)}
               </p>
               <button
                 onClick={() => copyToClipboard(sub.subscriber)}
-                className="text-gray-400 hover:text-gray-600 text-xs"
+                className="text-foreground/60 hover:text-foreground text-sm transition-colors"
                 title="Copy full address"
               >
                 📋
               </button>
             </div>
           </div>
-          <div className="space-y-1">
-            <Label className="text-gray-600 text-xs">Recipient</Label>
-            <div className="flex items-center gap-2 bg-gray-50 px-2 py-1 rounded border">
-              <p className="font-mono text-xs flex-1" title={sub.recipient}>
+          <div className="space-y-2">
+            <Label className="text-foreground font-semibold text-sm">Recipient</Label>
+            <div className="flex items-center gap-2 bg-secondary border-2 border-foreground px-3 py-2 rounded-lg">
+              <p className="font-mono text-sm flex-1 text-foreground" title={sub.recipient}>
                 {formatAddress(sub.recipient)}
               </p>
               <button
                 onClick={() => copyToClipboard(sub.recipient)}
-                className="text-gray-400 hover:text-gray-600 text-xs"
+                className="text-foreground/60 hover:text-foreground text-sm transition-colors"
                 title="Copy full address"
               >
                 📋
@@ -357,61 +357,58 @@ function SubscriptionCard({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <Label className="text-gray-600">Amount per Interval</Label>
-            <p className="font-semibold">
+        <div className="grid grid-cols-2 gap-6">
+          <div className="bg-secondary border-2 border-foreground rounded-lg p-4">
+            <Label className="text-foreground font-semibold text-sm">Amount per Interval</Label>
+            <p className="text-xl font-bold text-foreground mt-1">
               {formatAmount(sub.amountPerInterval)} USDC
             </p>
           </div>
-          <div>
-            <Label className="text-gray-600">Total Amount</Label>
-            <p className="font-semibold">
+          <div className="bg-secondary border-2 border-foreground rounded-lg p-4">
+            <Label className="text-foreground font-semibold text-sm">Total Amount</Label>
+            <p className="text-xl font-bold text-foreground mt-1">
               {formatAmount(sub.totalAmount)} USDC
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <Label className="text-gray-600">Remaining Amount</Label>
-            <p className="font-semibold">
+        <div className="grid grid-cols-2 gap-6">
+          <div className="bg-secondary border-2 border-foreground rounded-lg p-4">
+            <Label className="text-foreground font-semibold text-sm">Remaining Amount</Label>
+            <p className="text-xl font-bold text-foreground mt-1">
               {formatAmount(sub.remainingAmount)} USDC
             </p>
           </div>
-          <div>
-            <Label className="text-gray-600">Periods Remaining</Label>
-            <p className="font-semibold">{sub.periodsRemaining.toString()}</p>
+          <div className="bg-secondary border-2 border-foreground rounded-lg p-4">
+            <Label className="text-foreground font-semibold text-sm">Periods Remaining</Label>
+            <p className="text-xl font-bold text-foreground mt-1">{sub.periodsRemaining.toString()}</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <Label className="text-gray-600">Next Payment</Label>
-            <p className="font-semibold">
+        <div className="grid grid-cols-2 gap-6">
+          <div className="bg-secondary border-2 border-foreground rounded-lg p-4">
+            <Label className="text-foreground font-semibold text-sm">Next Payment</Label>
+            <p className="text-xl font-bold text-foreground mt-1">
               {timeUntilDue ? formatTime(timeUntilDue) : "N/A"}
             </p>
           </div>
-          <div>
-            <Label className="text-gray-600">Chain</Label>
-            <p className="font-semibold">{chainConfig.name}</p>
+          <div className="bg-secondary border-2 border-foreground rounded-lg p-4">
+            <Label className="text-foreground font-semibold text-sm">Chain</Label>
+            <p className="text-xl font-bold text-foreground mt-1">{chainConfig.name}</p>
           </div>
         </div>
 
         {/* Action buttons based on role */}
-        <div className="flex gap-2 pt-4 border-t">
+        <div className="flex gap-3 pt-6 border-t-2 border-foreground">
           {isRecipient && isDue && sub.isActive && !sub.isPaused && (
             <Button
               onClick={processPayment}
               disabled={isPending || isConfirming}
               size="sm"
-              className="bg-green-600 hover:bg-green-700"
+              variant="primary"
+              loading={isPending || isConfirming}
             >
-              {isPending || isConfirming ? (
-                <RefreshCw className="h-4 w-4 animate-spin" />
-              ) : (
-                "Process Payment"
-              )}
+              Process Payment
             </Button>
           )}
 
@@ -442,7 +439,7 @@ function SubscriptionCard({
                 onClick={cancelSubscription}
                 disabled={isPending || isConfirming}
                 size="sm"
-                variant="destructive"
+                variant="secondary"
               >
                 <X className="h-4 w-4 mr-1" />
                 Cancel
@@ -452,11 +449,11 @@ function SubscriptionCard({
         </div>
 
         {error && (
-          <div className="text-red-500 text-sm bg-red-50 p-2 rounded">
+          <div className="text-red-500 text-sm bg-red-100 border-2 border-red-500 p-3 rounded-lg font-semibold">
             {error.message}
           </div>
         )}
-      </CardContent>
+      </div>
     </Card>
   );
 }
@@ -561,25 +558,27 @@ export default function ManagePayment() {
 
   if (!isConnected) {
     return (
-      <Card className="w-full max-w-2xl mx-auto">
-        <CardContent className="flex items-center justify-center p-8">
-          <p className="text-lg text-gray-600">
+      <Card className="w-full max-w-2xl mx-auto" hover={false}>
+        <div className="flex items-center justify-center p-8">
+          <p className="text-lg text-foreground font-semibold">
             Please connect your wallet to view subscriptions
           </p>
-        </CardContent>
+        </div>
       </Card>
     );
   }
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-6">
+    <div className="w-full max-w-6xl mx-auto space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Manage Recurring Payments</h1>
-        <div className="flex gap-2">
-          <div className="flex items-center gap-2">
-            <Label>Chain:</Label>
+        <div className="text-4xl font-bold bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent">
+          Manage Recurring Payments
+        </div>
+        <div className="flex gap-4">
+          <div className="flex items-center gap-3">
+            <Label className="text-foreground font-semibold">Chain:</Label>
             <select
-              className="border rounded-md h-10 px-2"
+              className="input-neobrutal h-12 px-4 text-foreground font-semibold"
               value={selectedChain}
               onChange={(e) =>
                 setSelectedChain(e.target.value as SupportedChainKey)
@@ -589,7 +588,7 @@ export default function ManagePayment() {
               <option value="arbitrumSepolia">Arbitrum Sepolia</option>
             </select>
           </div>
-          <Button onClick={handleRefresh} variant="outline" size="sm">
+          <Button onClick={handleRefresh} variant="outline" size="md">
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
@@ -598,23 +597,23 @@ export default function ManagePayment() {
 
       {/* Error Display */}
       {(userSubscriptionsError || receivedSubscriptionsError) && (
-        <div className="bg-red-50 border border-red-200 rounded-md p-4">
-          <h3 className="text-red-800 font-semibold mb-2">Contract Error</h3>
+        <Card className="bg-red-100 border-2 border-red-500" hover={false}>
+          <h3 className="text-red-800 font-bold text-lg mb-4">Contract Error</h3>
           {userSubscriptionsError && (
-            <p className="text-red-700 text-sm mb-1">
+            <p className="text-red-700 text-sm mb-2 font-semibold">
               User Subscriptions Error: {userSubscriptionsError.message}
             </p>
           )}
           {receivedSubscriptionsError && (
-            <p className="text-red-700 text-sm">
+            <p className="text-red-700 text-sm font-semibold">
               Received Subscriptions Error: {receivedSubscriptionsError.message}
             </p>
           )}
-          <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
-            <p className="text-yellow-800 text-sm">
-              <strong>Possible Solutions:</strong>
+          <div className="mt-4 p-4 bg-yellow-100 border-2 border-yellow-500 rounded-lg">
+            <p className="text-yellow-800 text-sm font-bold mb-2">
+              Possible Solutions:
             </p>
-            <ul className="text-yellow-700 text-sm mt-1 list-disc list-inside">
+            <ul className="text-yellow-700 text-sm space-y-1 list-disc list-inside">
               <li>
                 Make sure your wallet is connected to the correct network (
                 {chainConfig.name})
@@ -633,141 +632,125 @@ export default function ManagePayment() {
               </li>
             </ul>
           </div>
-        </div>
+        </Card>
       )}
 
       <Tabs defaultValue="created" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-100">
+        <TabsList className="grid w-full grid-cols-2 bg-secondary border-2 border-foreground rounded-lg p-1">
           <TabsTrigger
             value="created"
-            className="flex items-center gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white transition-all duration-200 hover:bg-blue-100"
+            className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-background transition-all duration-200 hover:bg-primary/20 font-semibold rounded-md"
           >
             <Calendar className="h-4 w-4" />
-            <span className="font-medium">Created</span>
-            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-semibold">
+            <span>Created</span>
+            <span className="bg-foreground text-background px-2 py-1 rounded-lg text-xs font-bold">
               {userSubscriptionIds?.length || 0}
             </span>
           </TabsTrigger>
           <TabsTrigger
             value="received"
-            className="flex items-center gap-2 data-[state=active]:bg-purple-500 data-[state=active]:text-white transition-all duration-200 hover:bg-purple-100"
+            className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-background transition-all duration-200 hover:bg-primary/20 font-semibold rounded-md"
           >
             <Users className="h-4 w-4" />
-            <span className="font-medium">Received</span>
-            <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-semibold">
+            <span>Received</span>
+            <span className="bg-foreground text-background px-2 py-1 rounded-lg text-xs font-bold">
               {receivedSubscriptionIds?.length || 0}
             </span>
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="created" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Your Created Subscriptions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {/* {isLoadingUserSubscriptions ? (
-                <div className="flex items-center justify-center p-8">
-                  <RefreshCw className="h-6 w-6 animate-spin" />
-                </div>
-              ) : userSubscriptionIds && userSubscriptionIds.length > 0 ? ( */}
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {userSubscriptionIds && userSubscriptionIds.length > 0 ? userSubscriptionIds.map((id) => (
-                    <SubscriptionCard
-                      key={`${id}-${refreshKey}`}
-                      subscriptionId={Number(id)}
-                      chain={selectedChain}
-                      onUpdate={handleSubscriptionUpdate}
-                    />
-                  )) : <div className="text-center p-8">
-                    <p className="text-gray-600 mb-4">
-                      No subscriptions created yet
-                    </p>
-                  </div>}
-                </div>
-              {/* ) : (
-                <div className="text-center p-8">
-                  <p className="text-gray-600 mb-4">
-                    No subscriptions created yet
-                  </p>
-                </div>
-              )} */}
-            </CardContent>
+        <TabsContent value="created" className="space-y-6">
+          <Card hover={false}>
+            <div className="border-b-2 border-foreground pb-4 mb-6">
+              <h2 className="text-2xl font-bold text-foreground">Your Created Subscriptions</h2>
+            </div>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {userSubscriptionIds && userSubscriptionIds.length > 0 ? userSubscriptionIds.map((id) => (
+                <SubscriptionCard
+                  key={`${id}-${refreshKey}`}
+                  subscriptionId={Number(id)}
+                  chain={selectedChain}
+                  onUpdate={handleSubscriptionUpdate}
+                />
+              )) : <div className="text-center p-8 col-span-full">
+                <p className="text-foreground/70 text-lg font-semibold">
+                  No subscriptions created yet
+                </p>
+              </div>}
+            </div>
           </Card>
         </TabsContent>
 
-        <TabsContent value="received" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Subscriptions You&apos;ve Received</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isLoadingReceivedSubscriptions ? (
-                <div className="flex items-center justify-center p-8">
-                  <RefreshCw className="h-6 w-6 animate-spin" />
-                </div>
-              ) : receivedSubscriptionIds &&
-                receivedSubscriptionIds.length > 0 ? (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {receivedSubscriptionIds.map((id) => (
-                    <SubscriptionCard
-                      key={`${id}-${refreshKey}`}
-                      subscriptionId={Number(id)}
-                      chain={selectedChain}
-                      onUpdate={handleSubscriptionUpdate}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center p-8">
-                  <p className="text-gray-600">No subscriptions received yet</p>
-                </div>
-              )}
-            </CardContent>
+        <TabsContent value="received" className="space-y-6">
+          <Card hover={false}>
+            <div className="border-b-2 border-foreground pb-4 mb-6">
+              <h2 className="text-2xl font-bold text-foreground">Subscriptions You've Received</h2>
+            </div>
+            {isLoadingReceivedSubscriptions ? (
+              <div className="flex items-center justify-center p-8">
+                <RefreshCw className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : receivedSubscriptionIds &&
+              receivedSubscriptionIds.length > 0 ? (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {receivedSubscriptionIds.map((id) => (
+                  <SubscriptionCard
+                    key={`${id}-${refreshKey}`}
+                    subscriptionId={Number(id)}
+                    chain={selectedChain}
+                    onUpdate={handleSubscriptionUpdate}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center p-8">
+                <p className="text-foreground/70 text-lg font-semibold">No subscriptions received yet</p>
+              </div>
+            )}
           </Card>
         </TabsContent>
       </Tabs>
 
       {/* How It Works Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>How to Manage Recurring Payments</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid md:grid-cols-3 gap-4 text-sm">
-            <div className="p-4 border rounded-lg">
-              <h3 className="font-semibold mb-2">As Subscriber</h3>
-              <p className="text-gray-600">
+      <Card hover={false}>
+        <div className="border-b-2 border-foreground pb-4 mb-6">
+          <h2 className="text-2xl font-bold text-foreground">How to Manage Recurring Payments</h2>
+        </div>
+        <div className="space-y-6">
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="bg-secondary border-2 border-foreground rounded-lg p-6">
+              <h3 className="font-bold text-foreground text-lg mb-3">As Subscriber</h3>
+              <p className="text-foreground/80">
                 Pause, resume, or cancel your subscriptions. Monitor payment
                 status and remaining amounts.
               </p>
             </div>
-            <div className="p-4 border rounded-lg">
-              <h3 className="font-semibold mb-2">As Recipient</h3>
-              <p className="text-gray-600">
+            <div className="bg-secondary border-2 border-foreground rounded-lg p-6">
+              <h3 className="font-bold text-foreground text-lg mb-3">As Recipient</h3>
+              <p className="text-foreground/80">
                 Process due payments when they become available. View incoming
                 subscription details.
               </p>
             </div>
-            <div className="p-4 border rounded-lg">
-              <h3 className="font-semibold mb-2">Chain Management</h3>
-              <p className="text-gray-600">
+            <div className="bg-secondary border-2 border-foreground rounded-lg p-6">
+              <h3 className="font-bold text-foreground text-lg mb-3">Chain Management</h3>
+              <p className="text-foreground/80">
                 Switch between Sepolia and Arbitrum Sepolia to manage
                 subscriptions on different networks.
               </p>
             </div>
           </div>
 
-          <div className="p-4 bg-blue-50 rounded-lg">
-            <h4 className="font-semibold text-blue-900 mb-2">
+          <div className="p-6 bg-primary/10 border-2 border-primary rounded-lg">
+            <h4 className="font-bold text-primary text-lg mb-3">
               Powered by EIP-7702 + Nexus
             </h4>
-            <p className="text-blue-800 text-sm">
+            <p className="text-foreground/80">
               This system combines Nexus SDK for cross-chain funding with
               EIP-7702 delegation for secure recurring payments.
             </p>
           </div>
-        </CardContent>
+        </div>
       </Card>
     </div>
   );

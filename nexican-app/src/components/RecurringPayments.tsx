@@ -9,7 +9,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+import Button from "@/components/ui/button-new";
 import { useNexus } from "@/providers/NexusProvider";
 import {
   SUPPORTED_CHAINS,
@@ -316,7 +316,7 @@ export default function RecurringPayments({
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-6">
+    <div className="w-full max-w-4xl mx-auto space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Create Recurring Payment</CardTitle>

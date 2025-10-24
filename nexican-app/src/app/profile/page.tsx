@@ -172,7 +172,6 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar />
         <main className="py-8 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
             <div className="text-center py-12">
@@ -181,7 +180,6 @@ export default function ProfilePage() {
             </div>
           </div>
         </main>
-        <Footer />
       </div>
     );
   }
@@ -189,7 +187,6 @@ export default function ProfilePage() {
   if (error || !profile) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar />
         <main className="py-8 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
             <div className="text-center py-12">
@@ -198,14 +195,12 @@ export default function ProfilePage() {
             </div>
           </div>
         </main>
-        <Footer />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
 
       <main className="py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
@@ -466,9 +461,6 @@ export default function ProfilePage() {
           </div>
         </div>
       </main>
-
-      <Footer />
-
       {/* Campaign Split Funds Modal */}
       <Dialog open={splitFundsOpen} onOpenChange={setSplitFundsOpen}>
         <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">

@@ -22,7 +22,7 @@ export default function Button({
   type = 'button',
   className = ''
 }: ButtonProps) {
-  const baseClasses = 'relative font-semibold rounded-lg transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed';
+  const baseClasses = 'cursor-pointer relative font-semibold rounded-lg transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed';
 
   const variantClasses = {
     primary: 'btn-neobrutal',

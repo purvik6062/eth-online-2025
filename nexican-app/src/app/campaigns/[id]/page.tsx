@@ -78,8 +78,7 @@ export default function CampaignDetail() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar />
-        <main className="py-8 px-4 sm:px-6 lg:px-8">
+        <main className="py-8 px-4 sm:px-6 lg:px-8 min-h-screen">
           <div className="max-w-7xl mx-auto">
             <div className="text-center py-12">
               <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4" />
@@ -87,7 +86,6 @@ export default function CampaignDetail() {
             </div>
           </div>
         </main>
-        <Footer />
       </div>
     );
   }
@@ -95,7 +93,6 @@ export default function CampaignDetail() {
   if (error || !campaign) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar />
         <main className="py-8 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
             <div className="text-center py-12">
@@ -104,7 +101,6 @@ export default function CampaignDetail() {
             </div>
           </div>
         </main>
-        <Footer />
       </div>
     );
   }
@@ -135,8 +131,6 @@ export default function CampaignDetail() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
-
       <main className="py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -263,7 +257,7 @@ export default function CampaignDetail() {
                   <Button
                     size="lg"
                     className="w-full cursor-pointer"
-                    onClick={() => router.push(`/campaigns/${campaignId}/contribute`)}
+                    onClick={() => router.push(`/campaigns/${campaignId}/contribute?tab=one-time`)}
                     disabled={!address}
                   >
                     {address ? 'Contribute Now' : 'Connect Wallet to Contribute'}
@@ -296,7 +290,7 @@ export default function CampaignDetail() {
               <Card>
                 <h3 className="font-semibold text-foreground mb-4 flex items-center">
                   <Zap className="w-5 h-5 mr-2" />
-                  Escrow Contract
+                  Creator Details
                 </h3>
                 <div className="space-y-3 text-sm">
                   <div>
@@ -323,8 +317,6 @@ export default function CampaignDetail() {
           </div>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }
