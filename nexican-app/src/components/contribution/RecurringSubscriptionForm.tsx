@@ -26,7 +26,7 @@ export default function RecurringSubscriptionForm({ campaign, onSuccess }: Recur
   const { address } = useAccount();
   const [formData, setFormData] = useState({
     recipientAddress: campaign.userAddress,
-    paymentToken: 'PYUSD',
+    paymentToken: 'USDC',
     amountPerMonth: '',
     paymentFrequency: 'Monthly',
     numberOfMonths: '6',
@@ -125,10 +125,9 @@ export default function RecurringSubscriptionForm({ campaign, onSuccess }: Recur
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="PYUSD">PYUSD</SelectItem>
-                <SelectItem value="USDC">USDC</SelectItem>
-                <SelectItem value="USDT">USDT</SelectItem>
                 <SelectItem value="ETH">ETH</SelectItem>
+                <SelectItem value="USDT">USDT</SelectItem>
+                <SelectItem value="USDC">USDC</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-sm text-foreground/70">Balance: 0 {formData.paymentToken}</p>

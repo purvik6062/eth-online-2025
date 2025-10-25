@@ -19,7 +19,7 @@ export default function SplitsPage() {
             Home
           </Link>
           <Link href="/bridge" className="underline">
-            🌉 Bridge & Swap
+            🌉 Bridge & Transfer
           </Link>
           <Link href="/split-requests" className="underline">
             Split Requests

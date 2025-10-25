@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import {
   useAccount,
   useWriteContract,
@@ -13,9 +14,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Button from "@/components/ui/button-new";
 import { useNexus } from "@/providers/NexusProvider";
+import { toast } from "react-hot-toast";
 import {
   SUPPORTED_CHAINS,
   type SUPPORTED_CHAINS_IDS,
+  CHAIN_METADATA,
 } from "@avail-project/nexus-core";
 import type { Address } from "viem";
 import { isAddress } from "viem";
@@ -23,7 +26,11 @@ import IntentModal from "@/components/blocks/intent-modal";
 import AllowanceModal from "@/components/blocks/allowance-modal";
 import useListenTransaction from "@/hooks/useListenTransactions";
 
-type SupportedChainKey = "sepolia" | "arbitrumSepolia";
+type SupportedChainKey =
+  | "sepolia"
+  | "arbitrumSepolia"
+  | "baseSepolia"
+  | "optimismSepolia";
 
 // Set default chain based on campaign
 const getChainFromCampaign = (chainName: string): SUPPORTED_CHAINS_IDS => {
@@ -50,9 +57,31 @@ const getSupportedChainKeyFromCampaign = (
   switch (chainName.toLowerCase()) {
     case "arbitrum":
       return "arbitrumSepolia";
+    case "base":
+      return "baseSepolia";
+    case "optimism":
+      return "optimismSepolia";
     // Fallback to Sepolia for any other chain names for now
     default:
       return "sepolia";
+  }
+};
+
+// Helper function to get chain ID from SupportedChainKey
+const getChainIdFromSupportedKey = (
+  key: SupportedChainKey
+): SUPPORTED_CHAINS_IDS => {
+  switch (key) {
+    case "sepolia":
+      return SUPPORTED_CHAINS.SEPOLIA;
+    case "arbitrumSepolia":
+      return SUPPORTED_CHAINS.ARBITRUM_SEPOLIA;
+    case "baseSepolia":
+      return SUPPORTED_CHAINS.BASE_SEPOLIA;
+    case "optimismSepolia":
+      return SUPPORTED_CHAINS.OPTIMISM_SEPOLIA;
+    default:
+      return SUPPORTED_CHAINS.SEPOLIA;
   }
 };
 
@@ -76,13 +105,25 @@ const CHAIN_CONFIG: Record<
     id: 11155111,
     name: "Sepolia",
     usdc: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
-    delegationManager: "0xe220442A5aEa25dee9194c07396C082468f9f62F",
+    delegationManager: "0x9E89b0F0049e22E679C3A3bE4938DF1dCc08ec15",
   },
   arbitrumSepolia: {
     id: 421614,
     name: "Arbitrum Sepolia",
     usdc: "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d",
-    delegationManager: "0x03bd3553E02062D77Fb8Beda2207846063791115",
+    delegationManager: "0x9edE152D33D7450E08B8eAec6bDA5E7D1F98F45d",
+  },
+  baseSepolia: {
+    id: 84532,
+    name: "Base Sepolia",
+    usdc: "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+    delegationManager: "0x5C009421fb32B13Ac739E1fe95a4f6Ff4C132882",
+  },
+  optimismSepolia: {
+    id: 11155420,
+    name: "Optimism Sepolia",
+    usdc: "0x5fd84259d66Cd46123540766Be93DFE2D0b02CC2",
+    delegationManager: "0x32dDe10DBD35910Be56CdcDc47353488F798b8bb",
   },
 };
 
@@ -289,11 +330,95 @@ export default function RecurringPayments({
     if (isCreateConfirmed && submitting) {
       console.log("Subscription created successfully!");
       setStatusText("✅ Subscription created successfully!");
+
+      // Store subscription data in database
+      const storeSubscription = async () => {
+        try {
+          const response = await fetch("/api/subscriptions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              campaignId: campaign.campaignId,
+              subscriberAddress: address,
+              recipientAddress: recipient,
+              paymentToken: "USDC",
+              amountPerPayment: amountPerInterval,
+              paymentFrequency: frequency,
+              numberOfPayments: periods,
+              startDate: startDate || new Date(Date.now() + 60 * 1000), // 1 minute from now if no start date
+              status: "active",
+            }),
+          });
+
+          const result = await response.json();
+          if (result.success) {
+            console.log("Subscription stored in database:", result.data);
+
+            // Also record the contribution with total amount
+            try {
+              const contributionResponse = await fetch("/api/contributions", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  campaignId: campaign.campaignId,
+                  userId: address,
+                  amount: total,
+                  transactionHash:
+                    createHash ||
+                    `0x${Math.random().toString(16).substr(2, 64)}`, // Use actual hash or generate mock
+                  type: "recurring",
+                }),
+              });
+
+              const contributionResult = await contributionResponse.json();
+              if (contributionResult.success) {
+                console.log("Contribution recorded:", contributionResult.data);
+              } else {
+                console.error(
+                  "Failed to record contribution:",
+                  contributionResult.error
+                );
+              }
+            } catch (contributionError) {
+              console.error("Error recording contribution:", contributionError);
+            }
+
+            toast.success("Recurring payment setup completed successfully!");
+          } else {
+            console.error("Failed to store subscription:", result.error);
+            toast.error(
+              "Payment setup completed but failed to save subscription details"
+            );
+          }
+        } catch (dbError) {
+          console.error("Error storing subscription:", dbError);
+          toast.error(
+            "Payment setup completed but failed to save subscription details"
+          );
+        }
+      };
+
+      storeSubscription();
       setSubmitting(false);
       setTransactionCompleted(true);
       onSuccess();
     }
-  }, [isCreateConfirmed, submitting, onSuccess]);
+  }, [
+    isCreateConfirmed,
+    submitting,
+    onSuccess,
+    campaign.campaignId,
+    address,
+    recipient,
+    amountPerInterval,
+    frequency,
+    periods,
+    startDate,
+  ]);
 
   const handleSubmit = async () => {
     if (!isConnected || !address) {
@@ -416,16 +541,27 @@ export default function RecurringPayments({
           {/* Chain Selection */}
           <div className="space-y-2">
             <Label htmlFor="chain">Destination Chain</Label>
-            <select
-              id="chain"
-              className="w-full p-2 border rounded-md"
-              value={destinationChain}
-              onChange={() => { }}
-              disabled
-            >
-              <option value="sepolia">Sepolia</option>
-              <option value="arbitrumSepolia">Arbitrum Sepolia</option>
-            </select>
+            <div className="w-full p-3 border rounded-md bg-gray-50 flex items-center gap-x-2">
+              <Image
+                src={
+                  CHAIN_METADATA[getChainIdFromSupportedKey(destinationChain)]
+                    ?.logo
+                }
+                alt={
+                  CHAIN_METADATA[getChainIdFromSupportedKey(destinationChain)]
+                    ?.name ?? ""
+                }
+                width={24}
+                height={24}
+                className="rounded-full"
+              />
+              <p className="text-sm text-gray-800">
+                {
+                  CHAIN_METADATA[getChainIdFromSupportedKey(destinationChain)]
+                    ?.name
+                }
+              </p>
+            </div>
           </div>
 
           {/* Recipient Address */}
@@ -436,7 +572,7 @@ export default function RecurringPayments({
               type="text"
               placeholder="0x..."
               value={recipient}
-              onChange={() => { }}
+              onChange={() => {}}
               readOnly
               disabled
               className="text-black bg-gray-50"

@@ -4,6 +4,7 @@ import hardhatToolboxViemPlugin from "@nomicfoundation/hardhat-toolbox-viem";
 import "@nomicfoundation/hardhat-ethers";
 import "@nomicfoundation/hardhat-verify";
 import { configVariable } from "hardhat/config";
+import "@nomicfoundation/hardhat-ignition";
 
 const config: HardhatUserConfig = {
   plugins: [hardhatToolboxViemPlugin],
@@ -78,7 +79,9 @@ const config: HardhatUserConfig = {
   verify: {
     etherscan: {
       apiKey: process.env.ETHERSCAN_API_KEY || "",
+      enabled: true,
     },
+
   },
 };
 

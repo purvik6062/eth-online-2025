@@ -4,6 +4,7 @@ import Card from "@/components/ui/card-new";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, Wallet, AlertCircle, Loader2 } from "lucide-react";
 import BalanceCard from "./campaign/BalanceCard";
+import { useNexus } from "@avail-project/nexus-widgets";
 
 interface UnifiedBalanceProps {
   /**
@@ -57,6 +58,9 @@ export const UnifiedBalance: React.FC<UnifiedBalanceProps> = () => {
     totalBalance,
     formatBalance,
   } = useUnifiedBalance();
+
+  // Add nexus-widgets integration for enhanced balance functionality
+  const { isSdkInitialized, sdk } = useNexus();
 
   const balanceData = unifiedBalance
     ? {
