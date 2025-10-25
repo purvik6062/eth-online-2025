@@ -285,10 +285,6 @@ export default function ContributionPage() {
                     Set up a recurring payment to support this campaign over
                     time.
                   </p>
-                  {/* <RecurringSubscriptionForm
-                    campaign={campaign}
-                    onSuccess={handleSubscriptionCreated}
-                  /> */}
                   <RecurringPayments
                     campaign={campaign}
                     onSuccess={handleSubscriptionCreated}

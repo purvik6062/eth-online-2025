@@ -17,6 +17,9 @@ import {
 } from "@avail-project/nexus-core";
 import type { Address } from "viem";
 import { isAddress } from "viem";
+import IntentModal from "@/components/blocks/intent-modal";
+import AllowanceModal from "@/components/blocks/allowance-modal";
+import useListenTransaction from "@/hooks/useListenTransactions";
 
 type SupportedChainKey = "sepolia" | "arbitrumSepolia";
 
@@ -127,7 +130,10 @@ export default function RecurringPayments({
   const [campaignChain, setCampaignChain] =
     useState<SUPPORTED_CHAINS_IDS | null>(getChainFromCampaign(campaign.chain));
   const { address, isConnected } = useAccount();
-  const { nexusSDK } = useNexus();
+  const { nexusSDK, intentRefCallback, allowanceRefCallback, handleInit } =
+    useNexus();
+  const useSponsoredApprovals =
+    process.env.NEXT_PUBLIC_NEXUS_USE_SPONSORED_APPROVALS === "true";
   const [destinationChain, setDestinationChain] = useState<SupportedChainKey>(
     getSupportedChainKeyFromCampaign(campaign.chain)
   );
@@ -163,6 +169,12 @@ export default function RecurringPayments({
     });
 
   const chain = CHAIN_CONFIG[destinationChain];
+
+  // Only listen to transactions when we're actually submitting
+  const { processing, explorerURL } = useListenTransaction({
+    sdk: nexusSDK!,
+    type: "bridge",
+  });
 
   const total = useMemo(() => {
     if (!amountPerInterval || !periods) return 0;
@@ -320,15 +332,25 @@ export default function RecurringPayments({
       <Card>
         <CardHeader>
           <CardTitle>Create Recurring Payment</CardTitle>
+          <div className="text-sm text-muted-foreground space-y-1">
+            <div>
+              Nexus SDK Status:{" "}
+              {nexusSDK?.isInitialized() ? (
+                <span className="text-green-600">✓ Initialized</span>
+              ) : (
+                <span className="text-red-600">✗ Not Initialized</span>
+              )}
+            </div>
+            <div className="text-blue-600">
+              Campaign: <span className="font-semibold">{campaign.name}</span>
+            </div>
+            <div className="text-blue-600">
+              Target Chain:{" "}
+              <span className="font-semibold">{campaign.chain}</span>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="text-blue-600">
-            Campaign: <span className="font-semibold">{campaign.name}</span>
-          </div>
-          <div className="text-blue-600">
-            Target Chain:{" "}
-            <span className="font-semibold">{campaign.chain}</span>
-          </div>
           {/* Chain Selection */}
           <div className="space-y-2">
             <Label htmlFor="chain">Destination Chain</Label>
@@ -450,17 +472,65 @@ export default function RecurringPayments({
           )}
 
           {/* Submit Button */}
-          <Button
-            onClick={handleSubmit}
-            disabled={submitting || isApproving || isCreating}
-            className="w-full"
-          >
-            {submitting || isApproving || isCreating
-              ? "Processing..."
-              : "Execute Recurring Setup"}
-          </Button>
+          {!nexusSDK?.isInitialized() ? (
+            <Button onClick={handleInit} className="w-full">
+              Initialize Nexus SDK
+            </Button>
+          ) : (
+            <Button
+              onClick={handleSubmit}
+              disabled={submitting || isApproving || isCreating}
+              className="w-full"
+            >
+              {submitting || isApproving || isCreating
+                ? "Processing..."
+                : "Execute Recurring Setup"}
+            </Button>
+          )}
         </CardContent>
       </Card>
+
+      {/* Transaction Progress */}
+      {(intentRefCallback?.current?.intent || submitting) && (
+        <div className="mt-3 text-sm space-y-2">
+          <div className="bg-blue-50 p-3 rounded-md">
+            <p className="font-semibold">Transaction Progress</p>
+            {processing && (
+              <>
+                <p className="font-semibold">
+                  Total Steps: {processing?.totalSteps}
+                </p>
+                <p className="font-semibold">
+                  Status: {processing?.statusText}
+                </p>
+                <p className="font-semibold">
+                  Progress: {processing?.currentStep}
+                </p>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Modals */}
+      {intentRefCallback?.current?.intent && (
+        <IntentModal intent={intentRefCallback?.current} />
+      )}
+      {useSponsoredApprovals && allowanceRefCallback?.current && (
+        <AllowanceModal data={allowanceRefCallback.current} />
+      )}
+      {explorerURL && (
+        <div className="mt-3">
+          <a
+            href={(explorerURL ?? undefined) as unknown as string}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline font-semibold"
+          >
+            View on Explorer
+          </a>
+        </div>
+      )}
     </div>
   );
 }
