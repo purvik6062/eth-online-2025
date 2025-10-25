@@ -9,7 +9,7 @@ import Card from '@/components/ui/card-new';
 import Button from '@/components/ui/button-new';
 import ProgressBar from '@/components/ui/ProgressBar';
 import { useAccount } from 'wagmi';
-import { toast } from 'react-toastify';
+import { toast } from 'react-hot-toast'; 
 import { useParams, useRouter } from 'next/navigation';
 
 interface Campaign {

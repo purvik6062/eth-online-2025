@@ -6,7 +6,7 @@ import { Calendar, ArrowLeft, Loader2 } from "lucide-react";
 import Card from "@/components/ui/card-new";
 import Button from "@/components/ui/button-new";
 import { useAccount } from "wagmi";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import CampaignSplitsForm from "@/components/contribution/CampaignSplitsForm";
 import RecurringSubscriptionForm from "@/components/contribution/RecurringSubscriptionForm";
 import SubscriptionCards from "@/components/contribution/SubscriptionCards";

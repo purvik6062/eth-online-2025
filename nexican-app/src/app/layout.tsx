@@ -1,18 +1,29 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Archivo_Black, Roboto_Mono } from "next/font/google";
 import "./globals.css";
 import Web3Provider from "@/providers/Web3Provider";
-import { ToastContainer, Bounce } from "react-toastify";
+import { Toaster } from "react-hot-toast";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// const geistSans = Geist({
+//   variable: "--font-geist-sans",
+//   subsets: ["latin"],
+// });
+
+// const geistMono = Geist_Mono({
+//   variable: "--font-geist-mono",
+//   subsets: ["latin"],
+// });
+
+const robotoMono = Roboto_Mono({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const archivoBlack = Archivo_Black({
+  variable: "--font-archivo-black",
+  weight: ["400"],
   subsets: ["latin"],
 });
 
@@ -29,25 +40,23 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${robotoMono.variable} ${archivoBlack.variable} antialiased`}
       >
         <Web3Provider>
           <Navbar />
           {children}
           <Footer />
         </Web3Provider>
-        <ToastContainer
+        <Toaster
           position={"top-center"}
-          autoClose={5000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick={false}
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="colored"
-          transition={Bounce}
+          toastOptions={{
+            duration: 5000,
+            style: {
+              borderRadius: '9999px',
+              background: '#5f7161',
+              color: '#fff',
+            },
+          }}
         />
       </body>
     </html>

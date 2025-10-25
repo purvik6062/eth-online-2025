@@ -2,16 +2,19 @@
 
 import { useEffect, useState } from 'react';
 import { useAccount } from 'wagmi';
-import { CheckCircle, XCircle, Clock, Eye, Shield, Users, Target, AlertCircle } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Eye, Shield, Users, Target, AlertCircle, Calendar, DollarSign, User, FileText, ExternalLink, MapPin, Image as ImageIcon, Download, Link2, Award, TrendingUp, Activity, Loader2 } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Card from '@/components/ui/card-new';
 import Button from '@/components/ui/button-new';
 import ProgressBar from '@/components/ui/ProgressBar';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import toast from 'react-hot-toast';
 
 // Static DAO member addresses - add your DAO member addresses here
 const DAO_MEMBER_ADDRESSES = [
-  "0xB351a70dD6E5282A8c84edCbCd5A955469b9b032"
+  "0xB351a70dD6E5282A8c84edCbCd5A955469b9b032",
+  "0x7e3D3Ce78D53AaA557f38a9618976c230AEd9988"
 ];
 
 const mockDaoStats = {
@@ -26,6 +29,10 @@ export default function DAOPage() {
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedCampaign, setSelectedCampaign] = useState<any | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loadingCampaignId, setLoadingCampaignId] = useState<string | null>(null);
+  const [loadingAction, setLoadingAction] = useState<'approve' | 'reject' | null>(null);
   const { address } = useAccount();
 
   // Check if current address is a DAO member
@@ -57,9 +64,13 @@ export default function DAOPage() {
   const handleVerify = async (campaignId: string, action: 'approve' | 'reject') => {
     try {
       if (!address) {
-        alert('Connect wallet to proceed');
+        toast.error('Connect wallet to proceed');
         return;
       }
+
+      setLoadingCampaignId(campaignId);
+      setLoadingAction(action);
+
       const response = await fetch('/api/dao/verify', {
         method: 'POST',
         headers: {
@@ -76,14 +87,17 @@ export default function DAOPage() {
       const result = await response.json();
 
       if (result.success) {
-        alert(result.message);
+        toast.success(result.message);
         fetchDAOCampaigns(); // Refresh the list
       } else {
-        alert(`Error: ${result.error}`);
+        toast.error(`Error: ${result.error}`);
       }
     } catch (error) {
       console.error('Error verifying campaign:', error);
-      alert('Failed to verify campaign. Please try again.');
+      toast.error('Failed to verify campaign. Please try again.');
+    } finally {
+      setLoadingCampaignId(null);
+      setLoadingAction(null);
     }
   };
 
@@ -94,6 +108,16 @@ export default function DAOPage() {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
+  };
+
+  const handleViewDetails = (campaign: any) => {
+    setSelectedCampaign(campaign);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedCampaign(null);
   };
 
 
@@ -279,8 +303,13 @@ export default function DAOPage() {
                           size="sm"
                           onClick={() => handleVerify(campaign.campaignId, 'approve')}
                           className="cursor-pointer"
-                        >   
-                          <CheckCircle className="w-4 h-4 mr-1" />
+                          disabled={loadingCampaignId === campaign.campaignId}
+                        >
+                          {loadingCampaignId === campaign.campaignId && loadingAction === 'approve' ? (
+                            <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                          ) : (
+                            <CheckCircle className="w-4 h-4 mr-1" />
+                          )}
                           Approve
                         </Button>
                         <Button
@@ -288,8 +317,13 @@ export default function DAOPage() {
                           variant="outline"
                           onClick={() => handleVerify(campaign.campaignId, 'reject')}
                           className="cursor-pointer"
+                          disabled={loadingCampaignId === campaign.campaignId}
                         >
-                          <XCircle className="w-4 h-4 mr-1" />
+                          {loadingCampaignId === campaign.campaignId && loadingAction === 'reject' ? (
+                            <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                          ) : (
+                            <XCircle className="w-4 h-4 mr-1" />
+                          )}
                           Reject
                         </Button>
                       </div>
@@ -304,11 +338,16 @@ export default function DAOPage() {
 
                 {/* Action Buttons */}
                 <div className="flex justify-end space-x-2 mt-6 pt-4 border-t border-foreground/20">
-                  <Button variant="outline" size="sm">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleViewDetails(campaign)}
+                    className="cursor-pointer"
+                  >
                     <Eye className="w-4 h-4 mr-2" />
                     View Details
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={() => toast("Coming Soon!")}>
                     <AlertCircle className="w-4 h-4 mr-2" />
                     Request Changes
                   </Button>
@@ -331,6 +370,315 @@ export default function DAOPage() {
           )}
         </div>
       </main>
+
+      {/* Campaign Details Modal */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Target className="w-6 h-6 text-primary" />
+              Campaign Details
+            </DialogTitle>
+            <DialogDescription>
+              Complete information about the selected campaign
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedCampaign && (
+            <div className="space-y-6">
+              {/* Campaign Header */}
+              <div className="bg-secondary/50 p-4 rounded-lg border-2 border-foreground/20">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h3 className="text-2xl font-bold text-foreground mb-2">{selectedCampaign.name}</h3>
+                    <div className="flex items-center gap-2 text-foreground/70 mb-3">
+                      <User className="w-4 h-4" />
+                      <span>by {selectedCampaign.userAddress}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-foreground/70">
+                      <MapPin className="w-4 h-4" />
+                      <span className="capitalize">{selectedCampaign.chain || 'Ethereum'}</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${selectedCampaign.status === 'pending_verification'
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : selectedCampaign.status === 'approved'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
+                      }`}>
+                      {selectedCampaign.status.replace('_', ' ').toUpperCase()}
+                    </span>
+                    {selectedCampaign.daoVerificationRequired && (
+                      <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                        DAO Required
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Campaign Image */}
+              {selectedCampaign.image && (
+                <div className="space-y-2">
+                  <h4 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                    <ImageIcon className="w-5 h-5" />
+                    Campaign Image
+                  </h4>
+                  <div className="relative w-full h-48 bg-secondary/30 rounded-lg border border-foreground/10 overflow-hidden">
+                    <img
+                      src={selectedCampaign.image}
+                      alt={selectedCampaign.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Campaign Description */}
+              {selectedCampaign.description && (
+                <div className="space-y-2">
+                  <h4 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                    <FileText className="w-5 h-5" />
+                    Description
+                  </h4>
+                  <p className="text-foreground/70 leading-relaxed bg-secondary/30 p-4 rounded-lg border border-foreground/10">
+                    {selectedCampaign.description}
+                  </p>
+                </div>
+              )}
+
+              {/* Financial Information */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="bg-secondary/30 p-4 rounded-lg border border-foreground/10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <DollarSign className="w-5 h-5 text-primary" />
+                    <h4 className="font-semibold text-foreground">Goal</h4>
+                  </div>
+                  <p className="text-2xl font-bold text-foreground">{formatAmount(selectedCampaign.goal)}</p>
+                </div>
+
+                <div className="bg-secondary/30 p-4 rounded-lg border border-foreground/10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <DollarSign className="w-5 h-5 text-green-500" />
+                    <h4 className="font-semibold text-foreground">Raised</h4>
+                  </div>
+                  <p className="text-2xl font-bold text-foreground">{formatAmount(selectedCampaign.raised)}</p>
+                </div>
+
+                <div className="bg-secondary/30 p-4 rounded-lg border border-foreground/10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Users className="w-5 h-5 text-primary" />
+                    <h4 className="font-semibold text-foreground">Backers</h4>
+                  </div>
+                  <p className="text-2xl font-bold text-foreground">{selectedCampaign.backers || 0}</p>
+                </div>
+
+                <div className="bg-secondary/30 p-4 rounded-lg border border-foreground/10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Calendar className="w-5 h-5 text-primary" />
+                    <h4 className="font-semibold text-foreground">Deadline</h4>
+                  </div>
+                  <p className="text-lg font-semibold text-foreground">{selectedCampaign.deadline}</p>
+                </div>
+              </div>
+
+              {/* Milestones Section */}
+              {selectedCampaign.milestones && selectedCampaign.milestones.length > 0 && (
+                <div className="space-y-4">
+                  <h4 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                    <Target className="w-5 h-5" />
+                    Milestones ({selectedCampaign.milestones.length})
+                  </h4>
+                  <div className="space-y-3">
+                    {selectedCampaign.milestones.map((milestone: any, index: number) => (
+                      <div key={milestone.id || index} className="bg-secondary/30 p-4 rounded-lg border border-foreground/10">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
+                            <h5 className="font-semibold text-foreground text-lg">{milestone.title}</h5>
+                            <p className="text-foreground/70 mt-1">{milestone.description}</p>
+                          </div>
+                          <div className="flex flex-col items-end gap-2">
+                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${milestone.status === 'completed'
+                              ? 'bg-green-100 text-green-800'
+                              : milestone.status === 'in-progress'
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-gray-100 text-gray-800'
+                              }`}>
+                              {milestone.status?.replace('-', ' ').toUpperCase() || 'PENDING'}
+                            </span>
+                            <span className="text-lg font-bold text-foreground">
+                              {formatAmount(milestone.amount)}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between text-sm text-foreground/60">
+                          <span>Deadline: {milestone.deadline}</span>
+                          <span>Milestone #{index + 1}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Campaign Statistics */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-secondary/30 p-4 rounded-lg border border-foreground/10">
+                  <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5" />
+                    Campaign Statistics
+                  </h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-foreground/70">Created</span>
+                      <span className="text-foreground">{selectedCampaign.createdAt ? new Date(selectedCampaign.createdAt).toLocaleDateString() : 'N/A'}</span>
+                    </div>
+                    {/* <div className="flex justify-between">
+                      <span className="text-foreground/70">Last Updated</span>
+                      <span className="text-foreground">{selectedCampaign.updatedAt ? new Date(selectedCampaign.updatedAt).toLocaleDateString() : 'N/A'}</span>
+                    </div> */}
+                    <div className="flex justify-between">
+                      <span className="text-foreground/70">Creator</span>
+                      <span className="text-foreground font-mono text-sm">{selectedCampaign.userAddress}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-secondary/30 p-4 rounded-lg border border-foreground/10">
+                  <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                    <Activity className="w-5 h-5" />
+                    Activity Summary
+                  </h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-foreground/70">Total Milestones</span>
+                      <span className="text-foreground">{selectedCampaign.milestones?.length || 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-foreground/70">Completed Milestones</span>
+                      <span className="text-foreground">
+                        {selectedCampaign.milestones?.filter((m: any) => m.status === 'completed').length || 0}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Campaign Links */}
+              {(selectedCampaign.website || selectedCampaign.socialLinks) && (
+                <div className="space-y-2">
+                  <h4 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                    <Link2 className="w-5 h-5" />
+                    External Links
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedCampaign.website && (
+                      <a
+                        href={selectedCampaign.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-3 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        Website
+                      </a>
+                    )}
+                    {selectedCampaign.socialLinks && Object.entries(selectedCampaign.socialLinks).map(([platform, url]) => (
+                      <a
+                        key={platform}
+                        href={url as string}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-3 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors border border-foreground/20"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        {platform}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Verification History */}
+              {selectedCampaign.verificationHistory && selectedCampaign.verificationHistory.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                    <Award className="w-5 h-5" />
+                    Verification History
+                  </h4>
+                  <div className="space-y-2">
+                    {selectedCampaign.verificationHistory.map((verification: any, index: number) => (
+                      <div key={index} className="bg-secondary/30 p-3 rounded-lg border border-foreground/10">
+                        <div className="flex items-center justify-between">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${verification.action === 'approve'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
+                            }`}>
+                            {verification.action.toUpperCase()}
+                          </span>
+                          <span className="text-sm text-foreground/70">
+                            {new Date(verification.timestamp).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <p className="text-sm text-foreground/70 mt-1">
+                          by {verification.verifierId}
+                        </p>
+                        {verification.comments && (
+                          <p className="text-sm text-foreground/60 mt-1 italic">
+                            "{verification.comments}"
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={closeModal}>
+              Close
+            </Button>
+            {selectedCampaign?.status === 'pending_verification' && isDaoMember && (
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => {
+                    handleVerify(selectedCampaign.campaignId, 'approve');
+                    closeModal();
+                  }}
+                  className="cursor-pointer"
+                  disabled={loadingCampaignId === selectedCampaign.campaignId}
+                >
+                  {loadingCampaignId === selectedCampaign.campaignId && loadingAction === 'approve' ? (
+                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                  ) : (
+                    <CheckCircle className="w-4 h-4 mr-1" />
+                  )}
+                  Approve
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    handleVerify(selectedCampaign.campaignId, 'reject');
+                    closeModal();
+                  }}
+                  className="cursor-pointer"
+                  disabled={loadingCampaignId === selectedCampaign.campaignId}
+                >
+                  {loadingCampaignId === selectedCampaign.campaignId && loadingAction === 'reject' ? (
+                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                  ) : (
+                    <XCircle className="w-4 h-4 mr-1" />
+                  )}
+                  Reject
+                </Button>
+              </div>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -23,7 +23,7 @@ import {
 import IntentModal from "@/components/blocks/intent-modal";
 import AllowanceModal from "@/components/blocks/allowance-modal";
 import useListenTransaction from "@/hooks/useListenTransactions";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast"; 
 import { useNotification } from "@blockscout/app-sdk";
 import { useChainId } from "wagmi";
 

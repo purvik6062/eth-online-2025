@@ -3,9 +3,8 @@ import { getCollection } from "../../../../lib/mongodb";
 
 // Static DAO member addresses - must match the frontend list
 const DAO_MEMBER_ADDRESSES = [
-  "0x742d35cc6634c0532925a3b8d4c9db96c4b4d8b6", // Example DAO member (lowercase)
-  "0x1234567890123456789012345678901234567890", // Add more DAO members here
-  "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd", // Add more DAO members here
+  "0x7e3D3Ce78D53AaA557f38a9618976c230AEd9988",
+  "0xB351a70dD6E5282A8c84edCbCd5A955469b9b032",
 ];
 
 // POST /api/dao/verify - Verify or reject a campaign
@@ -35,7 +34,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Enforce DAO member permissions using static allowlist
-    if (!DAO_MEMBER_ADDRESSES.includes(verifierId.toLowerCase())) {
+    if (!DAO_MEMBER_ADDRESSES.includes(verifierId)) {
       return NextResponse.json(
         {
           success: false,

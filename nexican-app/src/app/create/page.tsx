@@ -7,7 +7,7 @@ import Footer from '@/components/layout/Footer';
 import Card from '@/components/ui/card-new';
 import Button from '@/components/ui/button-new';
 import { useAccount } from 'wagmi';
-import { toast } from 'react-toastify';
+import { toast } from 'react-hot-toast';
 
 interface Milestone {
   id: string;

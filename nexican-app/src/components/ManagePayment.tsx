@@ -25,7 +25,7 @@ import {
   CopyIcon,
 } from "lucide-react";
 import { isAddress, formatEther } from "viem";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast"; 
 
 // Helper function to format addresses
 const formatAddress = (address: string) => {

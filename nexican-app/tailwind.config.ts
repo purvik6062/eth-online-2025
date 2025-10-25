@@ -17,8 +17,8 @@ const config: Config = {
         accent: "var(--accent)",
       },
       fontFamily: {
-        sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
-        mono: ["var(--font-geist-mono)", "monospace"],
+        sans: ["var(--font-archivo-black)"],
+        mono: ["var(--font-roboto-mono)"],
       },
       animation: {
         "slide-down": "slideDown 0.2s ease-out",
