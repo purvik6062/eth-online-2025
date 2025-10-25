@@ -336,6 +336,7 @@ export default function CampaignSplitsForm({
           const result = await response.json();
           if (result.success) {
             toast.success("Contribution completed successfully!");
+            setTotalAmount("");
             // onSuccess();
           }
         } catch (dbError) {

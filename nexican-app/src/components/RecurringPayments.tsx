@@ -149,6 +149,7 @@ export default function RecurringPayments({
   const [submitting, setSubmitting] = useState(false);
   const [statusText, setStatusText] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [subscriptionCreated, setSubscriptionCreated] = useState(false);
 
   // Wagmi hooks for contract interactions
   const {
@@ -210,6 +211,88 @@ export default function RecurringPayments({
     setRecipient(campaign.userAddress || "");
   }, [campaign]);
 
+  // Monitor approval confirmation and proceed to subscription creation
+  useEffect(() => {
+    if (
+      isApprovalConfirmed &&
+      submitting &&
+      !isCreating &&
+      !subscriptionCreated
+    ) {
+      console.log("Approval confirmed, proceeding to subscription creation...");
+      setStatusText("Step 3/3: Creating subscription...");
+      setSubscriptionCreated(true); // Prevent duplicate calls
+
+      // Now create the subscription
+      const createSubscription = async () => {
+        try {
+          const startTime = startDate
+            ? Math.floor(new Date(startDate).getTime() / 1000)
+            : Math.floor(Date.now() / 1000) + 60; // 1 minute from now
+
+          const amountPerIntervalWei = BigInt(
+            Math.floor(parseFloat(amountPerInterval) * 1_000_000)
+          );
+          const totalAmountWei = BigInt(Math.floor(total * 1_000_000));
+
+          console.log("Creating subscription with params:", {
+            recipient,
+            token: chain.usdc,
+            amountPerInterval: amountPerIntervalWei.toString(),
+            totalAmount: totalAmountWei.toString(),
+            startTime: startTime,
+            interval: intervalSeconds,
+            periods: periodsNum,
+            currentTime: Math.floor(Date.now() / 1000),
+            timeDifference: startTime - Math.floor(Date.now() / 1000),
+          });
+
+          await createContract({
+            address: chain.delegationManager as `0x${string}`,
+            abi: EIP7702_DELEGATION_MANAGER_ABI,
+            functionName: "createSubscription",
+            args: [
+              recipient as `0x${string}`,
+              chain.usdc as `0x${string}`,
+              amountPerIntervalWei,
+              totalAmountWei,
+              BigInt(startTime),
+              BigInt(intervalSeconds),
+              BigInt(periodsNum),
+            ],
+            value: BigInt(0),
+            gas: BigInt(500000),
+            chain: { id: chain.id, name: chain.name } as any,
+            account: address as `0x${string}`,
+          });
+
+          console.log("Subscription creation transaction submitted");
+          setStatusText("⏳ Waiting for subscription confirmation...");
+        } catch (error) {
+          console.error("Error creating subscription:", error);
+          setError(
+            error instanceof Error
+              ? error.message
+              : "Failed to create subscription"
+          );
+          setSubmitting(false);
+        }
+      };
+
+      createSubscription();
+    }
+  }, [isApprovalConfirmed, submitting, isCreating, subscriptionCreated]);
+
+  // Monitor subscription creation confirmation
+  useEffect(() => {
+    if (isCreateConfirmed && submitting) {
+      console.log("Subscription created successfully!");
+      setStatusText("✅ Subscription created successfully!");
+      setSubmitting(false);
+      onSuccess();
+    }
+  }, [isCreateConfirmed, submitting, onSuccess]);
+
   const handleSubmit = async () => {
     if (!isConnected || !address) {
       setError("Please connect your wallet");
@@ -231,23 +314,22 @@ export default function RecurringPayments({
       return;
     }
 
+    if (!nexusSDK?.isInitialized()) {
+      setError("Nexus SDK is not initialized. Please initialize it first.");
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
     setStatusText("");
+    setSubscriptionCreated(false); // Reset flag for new submission
 
     try {
-      // 1) Check unified USDC balance
-      setStatusText("Checking unified USDC balance...");
-      if (!nexusSDK) {
-        throw new Error("Nexus SDK not initialized");
-      }
+      // Step 1: Bridge/fund USDC to destination chain
+      setStatusText(`Step 1/3: Bridging ${total} USDC to ${chain.name}...`);
+      console.log("Starting Nexus transfer...");
 
-      // For now, skip balance check as we'll handle it in the transfer
-      console.log("Proceeding with transfer...");
-
-      // 2) Bridge/fund USDC to destination chain to self
-      setStatusText(`Bridging ${total} USDC to ${chain.name}...`);
-      const transferResult = await nexusSDK!.transfer({
+      const transferResult = await nexusSDK.transfer({
         token: "USDC",
         amount: total,
         chainId: chain.id as unknown as SUPPORTED_CHAINS_IDS,
@@ -263,12 +345,12 @@ export default function RecurringPayments({
         openTxToast(chainId.toString(), transferResult.transactionHash);
       }
 
-      setStatusText("Waiting for bridge confirmation...");
-      // Wait for bridge to complete
-      await new Promise((resolve) => setTimeout(resolve, 10000)); // Wait 10 seconds
+      console.log("Nexus transfer completed:", transferResult);
+      setStatusText("✅ Bridge completed successfully");
 
-      // 3) Approve USDC to DelegationManager using wagmi
-      setStatusText("Approving USDC to Delegation Manager...");
+      // Step 2: Approve USDC to DelegationManager
+      setStatusText("Step 2/3: Approving USDC to Delegation Manager...");
+      console.log("Starting USDC approval...");
 
       await approveContract({
         address: chain.usdc as `0x${string}`,
@@ -283,58 +365,14 @@ export default function RecurringPayments({
         account: address as `0x${string}`,
       });
 
-      setStatusText("Waiting for approval confirmation...");
-      // Wait for approval to be confirmed
-      await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait 5 seconds for approval
+      console.log("Approval transaction submitted");
+      setStatusText("⏳ Waiting for approval confirmation...");
 
-      // 4) Create Subscription on DelegationManager using wagmi
-      setStatusText("Creating subscription...");
-
-      const startTime = startDate
-        ? Math.floor(new Date(startDate).getTime() / 1000)
-        : Math.floor(Date.now() / 1000) + 60; // 1 minute from now
-
-      const amountPerIntervalWei = BigInt(
-        Math.floor(parseFloat(amountPerInterval) * 1_000_000)
-      );
-      const totalAmountWei = BigInt(Math.floor(total * 1_000_000));
-
-      console.log("Creating subscription with params:", {
-        recipient,
-        token: chain.usdc,
-        amountPerInterval: amountPerIntervalWei.toString(),
-        totalAmount: totalAmountWei.toString(),
-        startTime: startTime,
-        interval: intervalSeconds,
-        periods: periodsNum,
-        currentTime: Math.floor(Date.now() / 1000),
-        timeDifference: startTime - Math.floor(Date.now() / 1000),
-      });
-
-      await createContract({
-        address: chain.delegationManager as `0x${string}`,
-        abi: EIP7702_DELEGATION_MANAGER_ABI,
-        functionName: "createSubscription",
-        args: [
-          recipient as `0x${string}`,
-          chain.usdc as `0x${string}`,
-          amountPerIntervalWei,
-          totalAmountWei,
-          BigInt(startTime),
-          BigInt(intervalSeconds),
-          BigInt(periodsNum),
-        ],
-        value: BigInt(0),
-        gas: BigInt(500000),
-        chain: { id: chain.id, name: chain.name } as any,
-        account: address as `0x${string}`,
-      });
-
-      setStatusText("Subscription created successfully.");
+      // The subscription creation will be handled by useEffect after approval is confirmed
+      // We don't proceed to subscription creation here - let the useEffect handle it
     } catch (e: any) {
-      console.error(e);
+      console.error("Error in handleSubmit:", e);
       setError(e?.message || String(e));
-    } finally {
       setSubmitting(false);
     }
   };
