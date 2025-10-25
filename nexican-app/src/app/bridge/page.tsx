@@ -19,7 +19,11 @@ export default function BridgePage() {
         <h1 className="text-2xl font-semibold">🌉 Bridge & Transfer</h1>
       </div>
 
-      {nexusSDK?.isInitialized() && <UnifiedBalance />}
+      {nexusSDK?.isInitialized() && 
+      <div className="w-full max-w-4xl">
+      <UnifiedBalance />
+      </div>
+      }
 
       {!nexusSDK?.isInitialized() ? (
         <p className="text-sm text-gray-600">

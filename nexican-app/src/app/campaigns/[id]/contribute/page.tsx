@@ -25,11 +25,11 @@ interface Campaign {
   backers: number;
   chain: string;
   status:
-  | "active"
-  | "completed"
-  | "pending_verification"
-  | "rejected"
-  | "approved";
+    | "active"
+    | "completed"
+    | "pending_verification"
+    | "rejected"
+    | "approved";
   userAddress: string;
   milestones: Array<{
     id: string;
@@ -79,8 +79,8 @@ export default function ContributionPage() {
 
   // Handle query string for tab selection
   useEffect(() => {
-    const tab = searchParams.get('tab') as ContributionTab;
-    if (tab && (tab === 'one-time' || tab === 'recurring')) {
+    const tab = searchParams.get("tab") as ContributionTab;
+    if (tab && (tab === "one-time" || tab === "recurring")) {
       setActiveTab(tab);
     }
   }, [searchParams]);
@@ -129,7 +129,7 @@ export default function ContributionPage() {
     setActiveTab(tab);
     // Update URL with query string
     const url = new URL(window.location.href);
-    url.searchParams.set('tab', tab);
+    url.searchParams.set("tab", tab);
     router.replace(url.pathname + url.search, { scroll: false });
   };
 
@@ -205,7 +205,7 @@ export default function ContributionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">      
+    <div className="min-h-screen bg-background">
       <main className="py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
@@ -237,19 +237,21 @@ export default function ContributionPage() {
               <nav className="flex space-x-8 px-6">
                 <button
                   onClick={() => handleTabChange("one-time")}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === "one-time"
-                    ? "border-primary text-primary"
-                    : "border-transparent text-foreground/70 hover:text-foreground hover:border-foreground/20"
-                    }`}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === "one-time"
+                      ? "border-primary text-primary"
+                      : "border-transparent text-foreground/70 hover:text-foreground hover:border-foreground/20"
+                  }`}
                 >
                   One Time
                 </button>
                 <button
                   onClick={() => handleTabChange("recurring")}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === "recurring"
-                    ? "border-primary text-primary"
-                    : "border-transparent text-foreground/70 hover:text-foreground hover:border-foreground/20"
-                    }`}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === "recurring"
+                      ? "border-primary text-primary"
+                      : "border-transparent text-foreground/70 hover:text-foreground hover:border-foreground/20"
+                  }`}
                 >
                   Recurring
                 </button>
@@ -291,18 +293,6 @@ export default function ContributionPage() {
               )}
             </div>
           </Card>
-
-          {/* Show subscriptions if any exist */}
-          {showSubscriptions && subscriptions.length > 0 && (
-            <Card>
-              <div className="p-6">
-                <h2 className="text-xl font-semibold text-foreground mb-4">
-                  Your Created Subscriptions
-                </h2>
-                <SubscriptionCards subscriptions={subscriptions} />
-              </div>
-            </Card>
-          )}
         </div>
       </main>
     </div>

@@ -53,9 +53,9 @@ export default function RootLayout({
             duration: 5000,
             style: {
               borderRadius: '9999px',
-              background: '#6d8b74',
-              color: '#fff',
-              padding: '3px 8px',
+              background: '#fff',
+              color: '#000',
+              padding: '4px 10px',
               fontSize: '14px',
               border: '1px solid #000',
             },

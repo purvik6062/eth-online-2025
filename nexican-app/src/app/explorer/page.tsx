@@ -49,7 +49,7 @@ export default function ActivitiesPage() {
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Activities</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Explorer</h1>
           <p className="text-muted-foreground">
             View your transaction history and activity across the blockchain
           </p>
@@ -104,7 +104,7 @@ export default function ActivitiesPage() {
                   </Button>
                 </div>
 
-                <div className="space-y-3">
+                {/* <div className="space-y-3">
                   <h3 className="font-semibold text-foreground">All Network Transactions</h3>
                   <p className="text-sm text-muted-foreground">
                     View all recent transactions on the {currentChainInfo.name}
@@ -113,7 +113,7 @@ export default function ActivitiesPage() {
                     <ExternalLink className="w-4 h-4 mr-2" />
                     View All Transactions
                   </Button>
-                </div>
+                </div> */}
               </div>
 
               <div className="mt-6 pt-4 border-t border-border">

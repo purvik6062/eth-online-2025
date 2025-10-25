@@ -1,12 +1,20 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Search, Filter, ArrowRight, Clock, Shield, ChevronLeft, ChevronRight } from 'lucide-react';
-import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';
-import Card from '@/components/ui/card-new';
-import Button from '@/components/ui/button-new';
-import CampaignCard from '@/components/campaign/CampaignCard';
+import { useState, useEffect } from "react";
+import {
+  Search,
+  Filter,
+  ArrowRight,
+  Clock,
+  Shield,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
+import Card from "@/components/ui/card-new";
+import Button from "@/components/ui/button-new";
+import CampaignCard from "@/components/campaign/CampaignCard";
 
 interface Campaign {
   campaignId: string;
@@ -19,7 +27,12 @@ interface Campaign {
   backers: number;
   chain: string;
   category: string;
-  status: 'active' | 'completed' | 'pending_verification' | 'rejected' | 'approved';
+  status:
+    | "active"
+    | "completed"
+    | "pending_verification"
+    | "rejected"
+    | "approved";
   daoVerificationRequired: boolean;
   isPublic: boolean;
   createdAt: string;
@@ -28,22 +41,22 @@ interface Campaign {
 }
 
 const categories = [
-  'All',
-  'DeFi',
-  'NFT',
-  'Gaming',
-  'Infrastructure',
-  'Social',
-  'AI/ML',
+  "All",
+  "DeFi",
+  "NFT",
+  "Gaming",
+  "Infrastructure",
+  "Social",
+  "AI/ML",
 ];
 
 const chains = [
-  'All Chains',
-  'Ethereum',
-  'Polygon',
-  'Arbitrum',
-  'Optimism',
-  'Base',
+  "All Chains",
+  "Ethereum",
+  "Polygon",
+  "Arbitrum",
+  "Optimism",
+  "Base",
 ];
 
 export default function CampaignsPage() {
@@ -56,9 +69,9 @@ export default function CampaignsPage() {
   const campaignsPerPage = 9;
 
   // Filter states
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedChain, setSelectedChain] = useState('all chains');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedChain, setSelectedChain] = useState("all chains");
 
   useEffect(() => {
     fetchCampaigns();
@@ -71,36 +84,46 @@ export default function CampaignsPage() {
     // Search filter (title and creator address)
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(campaign =>
-        campaign.name.toLowerCase().includes(query) ||
-        (campaign.userAddress && campaign.userAddress.toLowerCase().includes(query)) ||
-        campaign.description.toLowerCase().includes(query)
+      filtered = filtered.filter(
+        (campaign) =>
+          campaign.name.toLowerCase().includes(query) ||
+          (campaign.userAddress &&
+            campaign.userAddress.toLowerCase().includes(query)) ||
+          campaign.description.toLowerCase().includes(query)
       );
     }
 
     // Category filter
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(campaign =>
-        campaign.category?.toLowerCase() === selectedCategory.toLowerCase()
+    if (selectedCategory !== "all") {
+      filtered = filtered.filter(
+        (campaign) =>
+          campaign.category?.toLowerCase() === selectedCategory.toLowerCase()
       );
     }
 
     // Chain filter
-    if (selectedChain !== 'all chains') {
-      filtered = filtered.filter(campaign =>
-        campaign.chain.toLowerCase() === selectedChain.toLowerCase()
+    if (selectedChain !== "all chains") {
+      filtered = filtered.filter(
+        (campaign) =>
+          campaign.chain.toLowerCase() === selectedChain.toLowerCase()
       );
     }
 
     setFilteredCampaigns(filtered);
     setTotalPages(Math.ceil(filtered.length / campaignsPerPage));
     setCurrentPage(1); // Reset to first page when filters change
-  }, [campaigns, searchQuery, selectedCategory, selectedChain, campaignsPerPage]);
+  }, [
+    campaigns,
+    searchQuery,
+    selectedCategory,
+    selectedChain,
+    campaignsPerPage,
+  ]);
 
   const fetchCampaigns = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/campaigns');
+      const response = await fetch("/api/campaigns");
       const result = await response.json();
 
       if (result.success) {
@@ -111,8 +134,8 @@ export default function CampaignsPage() {
         setError(result.error);
       }
     } catch (err) {
-      setError('Failed to fetch campaigns');
-      console.error('Error fetching campaigns:', err);
+      setError("Failed to fetch campaigns");
+      console.error("Error fetching campaigns:", err);
     } finally {
       setLoading(false);
     }
@@ -125,7 +148,7 @@ export default function CampaignsPage() {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   if (loading) {
@@ -168,27 +191,35 @@ export default function CampaignsPage() {
               Explore Campaigns
             </h1>
             <p className="text-lg text-foreground/70 max-w-2xl mx-auto">
-              Discover innovative projects and support creators across multiple blockchains
+              Discover innovative projects and support creators across multiple
+              blockchains
             </p>
           </div>
 
           {/* Search and Filters */}
-          <Card className="mb-8">
+          <Card className="mb-8 max-w-3xl mx-auto">
             <div className="space-y-6">
               {/* Search Bar */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground/40 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Search campaigns, creators, or keywords..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border-2 border-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
-                />
-              </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Search
+                  </label>
+                  <div className="relative"> 
 
-              {/* Filters */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground/40 w-5 h-5" />
+                  <input
+                    type="text"
+                    placeholder="Search campaigns..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 border-2 border-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    />
+                    </div>
+                </div>
+
+                {/* Filters */}
+
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
                     Category
@@ -198,7 +229,7 @@ export default function CampaignsPage() {
                     onChange={(e) => setSelectedCategory(e.target.value)}
                     className="w-full px-4 py-3 border-2 border-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
                   >
-                    {categories.map(category => (
+                    {categories.map((category) => (
                       <option key={category} value={category.toLowerCase()}>
                         {category}
                       </option>
@@ -215,7 +246,7 @@ export default function CampaignsPage() {
                     onChange={(e) => setSelectedChain(e.target.value)}
                     className="w-full px-4 py-3 border-2 border-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
                   >
-                    {chains.map(chain => (
+                    {chains.map((chain) => (
                       <option key={chain} value={chain.toLowerCase()}>
                         {chain}
                       </option>
@@ -225,15 +256,17 @@ export default function CampaignsPage() {
               </div>
 
               {/* Clear Filters Button */}
-              {(searchQuery || selectedCategory !== 'all' || selectedChain !== 'all chains') && (
+              {(searchQuery ||
+                selectedCategory !== "all" ||
+                selectedChain !== "all chains") && (
                 <div className="flex justify-end">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      setSearchQuery('');
-                      setSelectedCategory('all');
-                      setSelectedChain('all chains');
+                      setSearchQuery("");
+                      setSelectedCategory("all");
+                      setSelectedChain("all chains");
                     }}
                     className="cursor-pointer"
                   >
@@ -248,30 +281,36 @@ export default function CampaignsPage() {
           <div className="mb-8">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-foreground">
-                {searchQuery || selectedCategory !== 'all' || selectedChain !== 'all chains'
+                {searchQuery ||
+                selectedCategory !== "all" ||
+                selectedChain !== "all chains"
                   ? `Filtered Campaigns (${filteredCampaigns.length})`
-                  : `All Campaigns (${campaigns.length})`
-                }
+                  : `All Campaigns (${campaigns.length})`}
               </h2>
             </div>
 
             {filteredCampaigns.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-6xl mb-4">🔍</div>
-                <h3 className="text-xl font-semibold text-foreground mb-2">No campaigns found</h3>
+                <h3 className="text-xl font-semibold text-foreground mb-2">
+                  No campaigns found
+                </h3>
                 <p className="text-foreground/70 mb-4">
-                  {searchQuery || selectedCategory !== 'all' || selectedChain !== 'all chains'
-                    ? 'Try adjusting your filters or search terms'
-                    : 'No campaigns are available at the moment'
-                  }
+                  {searchQuery ||
+                  selectedCategory !== "all" ||
+                  selectedChain !== "all chains"
+                    ? "Try adjusting your filters or search terms"
+                    : "No campaigns are available at the moment"}
                 </p>
-                {(searchQuery || selectedCategory !== 'all' || selectedChain !== 'all chains') && (
+                {(searchQuery ||
+                  selectedCategory !== "all" ||
+                  selectedChain !== "all chains") && (
                   <Button
                     variant="outline"
                     onClick={() => {
-                      setSearchQuery('');
-                      setSelectedCategory('all');
-                      setSelectedChain('all chains');
+                      setSearchQuery("");
+                      setSelectedCategory("all");
+                      setSelectedChain("all chains");
                     }}
                     className="cursor-pointer"
                   >
@@ -288,22 +327,28 @@ export default function CampaignsPage() {
                         id: campaign.campaignId,
                         title: campaign.name,
                         description: campaign.description,
-                        image: campaign.image || 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=500&h=300&fit=crop',
+                        image:
+                          campaign.image ||
+                          "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=500&h=300&fit=crop",
                         goal: campaign.goal,
                         raised: campaign.raised,
                         deadline: campaign.deadline,
                         backers: campaign.backers,
                         chain: campaign.chain,
                         category: campaign.category,
-                        status: campaign.status as 'active' | 'completed' | 'cancelled'
+                        status: campaign.status as
+                          | "active"
+                          | "completed"
+                          | "cancelled",
                       }}
                     />
-                    {campaign.daoVerificationRequired && campaign.status === 'pending_verification' && (
-                      <div className="absolute top-2 right-2 bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium flex items-center">
-                        <Clock className="w-3 h-3 mr-1" />
-                        Pending DAO
-                      </div>
-                    )}
+                    {campaign.daoVerificationRequired &&
+                      campaign.status === "pending_verification" && (
+                        <div className="absolute top-2 right-2 bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium flex items-center">
+                          <Clock className="w-3 h-3 mr-1" />
+                          Pending DAO
+                        </div>
+                      )}
                   </div>
                 ))}
               </div>
@@ -324,39 +369,54 @@ export default function CampaignsPage() {
                   </Button>
 
                   <div className="flex items-center space-x-1">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                      // Show first page, last page, current page, and pages around current
-                      const shouldShow =
-                        page === 1 ||
-                        page === totalPages ||
-                        Math.abs(page - currentPage) <= 1;
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                      (page) => {
+                        // Show first page, last page, current page, and pages around current
+                        const shouldShow =
+                          page === 1 ||
+                          page === totalPages ||
+                          Math.abs(page - currentPage) <= 1;
 
-                      if (!shouldShow) {
-                        // Show ellipsis if there's a gap
-                        const prevPage = Array.from({ length: totalPages }, (_, i) => i + 1)
-                          .find(p => p < page && Math.abs(p - currentPage) <= 1);
-                        if (prevPage && page - prevPage > 1) {
-                          return (
-                            <span key={`ellipsis-${page}`} className="px-2 text-foreground/60">
-                              ...
-                            </span>
+                        if (!shouldShow) {
+                          // Show ellipsis if there's a gap
+                          const prevPage = Array.from(
+                            { length: totalPages },
+                            (_, i) => i + 1
+                          ).find(
+                            (p) => p < page && Math.abs(p - currentPage) <= 1
                           );
+                          if (prevPage && page - prevPage > 1) {
+                            return (
+                              <span
+                                key={`ellipsis-${page}`}
+                                className="px-2 text-foreground/60"
+                              >
+                                ...
+                              </span>
+                            );
+                          }
+                          return null;
                         }
-                        return null;
-                      }
 
-                      return (
-                        <Button
-                          key={page}
-                          variant={currentPage === page ? "primary" : "outline"}
-                          onClick={() => handlePageChange(page)}
-                          className={currentPage === page ? "btn-neobrutal" : "btn-outline"}
-                          size="sm"
-                        >
-                          {page}
-                        </Button>
-                      );
-                    })}
+                        return (
+                          <Button
+                            key={page}
+                            variant={
+                              currentPage === page ? "primary" : "outline"
+                            }
+                            onClick={() => handlePageChange(page)}
+                            className={
+                              currentPage === page
+                                ? "btn-neobrutal"
+                                : "btn-outline"
+                            }
+                            size="sm"
+                          >
+                            {page}
+                          </Button>
+                        );
+                      }
+                    )}
                   </div>
 
                   <Button

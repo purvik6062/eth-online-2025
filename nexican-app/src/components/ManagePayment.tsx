@@ -376,14 +376,14 @@ function SubscriptionCard({
   };
 
   const formatAmount = (amount: bigint) => {
-    return (Number(amount) / 1_000_000).toFixed(6); // USDC has 6 decimals
+    return (Number(amount) / 1_000_000).toFixed(2); // USDC has 6 decimals
   };
 
   return (
     <Card className="w-full" hover={true}>
       <div className="border-b-2 border-foreground pb-4 mb-6">
         <div className="flex items-center justify-between">
-          <h3 className="text-xl font-bold text-foreground">
+          <h3 className=" font-bold text-foreground">
             Subscription #{subscriptionId}
           </h3>
           <div className="flex gap-2">
@@ -404,15 +404,15 @@ function SubscriptionCard({
           </div>
         </div>
       </div>
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="space-y-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           <div className="space-y-2">
             <Label className="text-foreground font-semibold text-sm">
               Subscriber
             </Label>
             <div className="flex items-center gap-2 bg-secondary border-2 border-foreground px-3 py-2 rounded-lg">
               <p
-                className="font-mono text-sm flex-1 text-foreground"
+                className="font-mono text-xs flex-1 text-foreground"
                 title={sub.subscriber}
               >
                 {formatAddress(sub.subscriber)}
@@ -432,7 +432,7 @@ function SubscriptionCard({
             </Label>
             <div className="flex items-center gap-2 bg-secondary border-2 border-foreground px-3 py-2 rounded-lg">
               <p
-                className="font-mono text-sm flex-1 text-foreground"
+                className="font-mono text-xs flex-1 text-foreground"
                 title={sub.recipient}
               >
                 {formatAddress(sub.recipient)}
@@ -448,58 +448,58 @@ function SubscriptionCard({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-6">
-          <div className="bg-secondary border-2 border-foreground rounded-lg p-4">
+        <div className="grid grid-cols-2 gap-2">
+          <div className="bg-secondary border-2 border-foreground rounded-lg p-2 flex flex-col justify-between">
             <Label className="text-foreground font-semibold text-sm">
               Amount per Interval
             </Label>
-            <p className="text-xl font-bold text-foreground mt-1">
+            <p className="font-bold text-foreground mt-1">
               {formatAmount(sub.amountPerInterval)} USDC
             </p>
           </div>
-          <div className="bg-secondary border-2 border-foreground rounded-lg p-4">
+          <div className="bg-secondary border-2 border-foreground rounded-lg p-2 flex flex-col justify-between">
             <Label className="text-foreground font-semibold text-sm">
               Total Amount
             </Label>
-            <p className="text-xl font-bold text-foreground mt-1">
+            <p className="font-bold text-foreground mt-1">
               {formatAmount(sub.totalAmount)} USDC
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-6">
-          <div className="bg-secondary border-2 border-foreground rounded-lg p-4">
+        <div className="grid grid-cols-2 gap-2">
+          <div className="bg-secondary border-2 border-foreground rounded-lg p-2 flex flex-col justify-between">
             <Label className="text-foreground font-semibold text-sm">
               Remaining Amount
             </Label>
-            <p className="text-xl font-bold text-foreground mt-1">
+            <p className="font-bold text-foreground mt-1">
               {formatAmount(sub.remainingAmount)} USDC
             </p>
           </div>
-          <div className="bg-secondary border-2 border-foreground rounded-lg p-4">
+          <div className="bg-secondary border-2 border-foreground rounded-lg p-2 flex flex-col justify-between">
             <Label className="text-foreground font-semibold text-sm">
               Periods Remaining
             </Label>
-            <p className="text-xl font-bold text-foreground mt-1">
+            <p className="font-bold text-foreground mt-1">
               {sub.periodsRemaining.toString()}
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-6">
-          <div className="bg-secondary border-2 border-foreground rounded-lg p-4">
+        <div className="grid grid-cols-2 gap-2">
+          <div className="bg-secondary border-2 border-foreground rounded-lg p-2 flex flex-col justify-between">
             <Label className="text-foreground font-semibold text-sm">
               Next Payment
             </Label>
-            <p className="text-xl font-bold text-foreground mt-1">
+            <p className="font-bold text-foreground mt-1">
               {timeUntilDue ? formatTime(timeUntilDue) : "N/A"}
             </p>
           </div>
-          <div className="bg-secondary border-2 border-foreground rounded-lg p-4">
+          <div className="bg-secondary border-2 border-foreground rounded-lg p-2 flex flex-col justify-between">
             <Label className="text-foreground font-semibold text-sm">
               Chain
             </Label>
-            <p className="text-xl font-bold text-foreground mt-1">
+            <p className="font-bold text-foreground mt-1">
               {chainConfig.name}
             </p>
           </div>
@@ -1208,7 +1208,7 @@ export default function ManagePayment() {
                 Your Created Subscriptions
               </h2>
             </div>
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {userSubscriptionIds && userSubscriptionIds.length > 0 ? (
                 userSubscriptionIds.map((id) => (
                   <SubscriptionCard

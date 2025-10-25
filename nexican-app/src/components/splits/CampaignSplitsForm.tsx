@@ -22,6 +22,7 @@ import {
 import IntentModal from "@/components/blocks/intent-modal";
 import AllowanceModal from "@/components/blocks/allowance-modal";
 import useListenTransaction from "@/hooks/useListenTransactions";
+import UnifiedBalance from "../UnifiedBalance";
 
 type ShareMode = "equal" | "percent" | "custom";
 type Recipient = { address: string; share: string };
@@ -228,22 +229,26 @@ export default function CampaignSplitsForm({
 
         // Save split record to database
         try {
-          const splitResponse = await fetch(`/api/campaigns/${campaignId}/splits`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              recipients: successfulTransfers.map((t) => ({
-                address: t.address,
-                amount: entries.find((e) => e.address === t.address)?.amount || "0",
-              })),
-              totalAmount: totalAmountNeeded.toString(),
-              splitType: mode,
-              transactionHash: "pending", // Will be updated when transaction is confirmed
-              userAddress: address,
-            }),
-          });
+          const splitResponse = await fetch(
+            `/api/campaigns/${campaignId}/splits`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                recipients: successfulTransfers.map((t) => ({
+                  address: t.address,
+                  amount:
+                    entries.find((e) => e.address === t.address)?.amount || "0",
+                })),
+                totalAmount: totalAmountNeeded.toString(),
+                splitType: mode,
+                transactionHash: "pending", // Will be updated when transaction is confirmed
+                userAddress: address,
+              }),
+            }
+          );
 
           if (splitResponse.ok) {
             console.log("Split record saved to database");
@@ -296,6 +301,7 @@ export default function CampaignSplitsForm({
     <>
       <Card className="w-full max-w-4xl bg-transparent">
         <CardHeader>
+            
           <CardTitle>Split Funds for {campaignName}</CardTitle>
           <div className="text-sm text-muted-foreground space-y-1">
             <div>
@@ -307,7 +313,7 @@ export default function CampaignSplitsForm({
               )}
             </div>
             <div className="text-blue-600">
-              Maximum amount available: {maxAmount.toFixed(6)} {token}
+              Contribution Amount: {totalAmount} {token}
             </div>
             {computedAmounts.length > 0 && (
               <div className="text-yellow-600">
@@ -336,12 +342,20 @@ export default function CampaignSplitsForm({
               <select
                 className="border rounded-md h-10 px-2"
                 value={chain ?? SUPPORTED_CHAINS.SEPOLIA}
-                onChange={(e) => setChain(Number(e.target.value) as SUPPORTED_CHAINS_IDS)}
+                onChange={(e) =>
+                  setChain(Number(e.target.value) as SUPPORTED_CHAINS_IDS)
+                }
               >
                 <option value={SUPPORTED_CHAINS.SEPOLIA}>Sepolia</option>
-                <option value={SUPPORTED_CHAINS.ARBITRUM_SEPOLIA}>Arbitrum Sepolia</option>
-                <option value={SUPPORTED_CHAINS.OPTIMISM_SEPOLIA}>Optimism Sepolia</option>
-                <option value={SUPPORTED_CHAINS.BASE_SEPOLIA}>Base Sepolia</option>
+                <option value={SUPPORTED_CHAINS.ARBITRUM_SEPOLIA}>
+                  Arbitrum Sepolia
+                </option>
+                <option value={SUPPORTED_CHAINS.OPTIMISM_SEPOLIA}>
+                  Optimism Sepolia
+                </option>
+                <option value={SUPPORTED_CHAINS.BASE_SEPOLIA}>
+                  Base Sepolia
+                </option>
               </select>
             </div>
             <div className="grid gap-2">
@@ -409,9 +423,7 @@ export default function CampaignSplitsForm({
                         onChange={(e) =>
                           updateRecipient(idx, "share", e.target.value)
                         }
-                        placeholder={
-                          mode === "percent" ? "10" : "25"
-                        }
+                        placeholder={mode === "percent" ? "10" : "25"}
                         className="input-neobrutal"
                       />
                     </div>
@@ -486,12 +498,18 @@ export default function CampaignSplitsForm({
               <div className="mb-4">
                 <div className="flex justify-between text-sm text-foreground/70 mb-2">
                   <span>Transfer Progress</span>
-                  <span>{Math.round((currentTransferIndex / totalTransfers) * 100)}%</span>
+                  <span>
+                    {Math.round((currentTransferIndex / totalTransfers) * 100)}%
+                  </span>
                 </div>
                 <div className="w-full bg-secondary rounded-full h-3 border-2 border-foreground">
                   <div
                     className="bg-primary h-full rounded-full transition-all duration-300 ease-out"
-                    style={{ width: `${(currentTransferIndex / totalTransfers) * 100}%` }}
+                    style={{
+                      width: `${
+                        (currentTransferIndex / totalTransfers) * 100
+                      }%`,
+                    }}
                   ></div>
                 </div>
               </div>
@@ -501,15 +519,25 @@ export default function CampaignSplitsForm({
               <div className="space-y-3">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="text-center p-3 bg-background border-2 border-foreground rounded-lg">
-                    <div className="text-2xl font-bold text-primary">{processing?.currentStep}</div>
-                    <div className="text-sm text-foreground/70">Current Step</div>
+                    <div className="text-2xl font-bold text-primary">
+                      {processing?.currentStep}
+                    </div>
+                    <div className="text-sm text-foreground/70">
+                      Current Step
+                    </div>
                   </div>
                   <div className="text-center p-3 bg-background border-2 border-foreground rounded-lg">
-                    <div className="text-2xl font-bold text-primary">{processing?.totalSteps}</div>
-                    <div className="text-sm text-foreground/70">Total Steps</div>
+                    <div className="text-2xl font-bold text-primary">
+                      {processing?.totalSteps}
+                    </div>
+                    <div className="text-sm text-foreground/70">
+                      Total Steps
+                    </div>
                   </div>
                   <div className="text-center p-3 bg-background border-2 border-foreground rounded-lg">
-                    <div className="text-lg font-bold text-primary">{processing?.statusText}</div>
+                    <div className="text-lg font-bold text-primary">
+                      {processing?.statusText}
+                    </div>
                     <div className="text-sm text-foreground/70">Status</div>
                   </div>
                 </div>

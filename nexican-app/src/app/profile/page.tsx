@@ -33,6 +33,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import Link from "next/link";
+import { useNexus } from "@/providers/NexusProvider";
 
 interface Campaign {
   campaignId: string;
@@ -96,6 +97,7 @@ export default function ProfilePage() {
   const [splitFundsOpen, setSplitFundsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const { address } = useAccount();
+  const { nexusSDK } = useNexus();
 
   useEffect(() => {
     if (address) {
@@ -464,7 +466,10 @@ export default function ProfilePage() {
                       No campaigns created yet
                     </p>
                     <Link href="/create" className="w-full">
-                      <Button variant="outline" className="gradient-primary !text-white">
+                      <Button
+                        variant="outline"
+                        className="gradient-primary !text-white"
+                      >
                         <Target className="w-4 h-4 mr-2" />
                         Create Your First Campaign
                       </Button>
@@ -577,12 +582,14 @@ export default function ProfilePage() {
           <DialogHeader>
             <DialogTitle>Split Funds for {selectedCampaign?.name}</DialogTitle>
             <DialogDescription>
-              Distribute the raised funds (
-              {formatAmount(selectedCampaign?.raised || 0)}) among your team
-              members. Maximum amount available:{" "}
-              {formatAmount(selectedCampaign?.raised || 0)}
+              Distribute the raised funds among your team members.
             </DialogDescription>
           </DialogHeader>
+          {nexusSDK?.isInitialized() && (
+            <div className="w-full max-w-4xl">
+              <UnifiedBalance />
+            </div>
+          )}
           {selectedCampaign && (
             <CampaignSplitsForm
               campaignId={selectedCampaign.campaignId}

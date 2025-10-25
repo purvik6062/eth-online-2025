@@ -16,10 +16,11 @@ export default function Navbar() {
     { name: 'Home', href: '/' },
     { name: 'Campaigns', href: '/campaigns' },
     { name: 'Create', href: '/create' },
-    { name: 'Activities', href: '/activities' },
+    { name: 'Explorer', href: '/explorer' },
     // { name: 'Payroll', href: '/payroll' },
     { name: 'DAO', href: '/dao' },
     // { name: 'Profile', href: '/profile' },
+    { name: 'Bridge', href: '/bridge' },
   ];
 
   const isActive = (href: string) => {
