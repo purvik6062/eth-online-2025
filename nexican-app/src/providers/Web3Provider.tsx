@@ -10,6 +10,7 @@ import {
 import { ConnectKitProvider, getDefaultConfig } from "connectkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import NexusProvider from "./NexusProvider";
+import { NotificationProvider, TransactionPopupProvider } from "@blockscout/app-sdk";
 
 const walletConnectProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID;
 
@@ -49,7 +50,11 @@ const Web3Provider = ({ children }: { children: React.ReactNode }) => {
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <ConnectKitProvider theme="retro" mode="light">
-          <NexusProvider>{children}</NexusProvider>
+          <NotificationProvider>
+            <TransactionPopupProvider>
+              <NexusProvider>{children}</NexusProvider>
+            </TransactionPopupProvider>
+          </NotificationProvider>
         </ConnectKitProvider>
       </QueryClientProvider>
     </WagmiProvider>

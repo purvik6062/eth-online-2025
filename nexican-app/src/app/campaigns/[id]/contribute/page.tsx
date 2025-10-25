@@ -1,10 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { Calendar, ArrowLeft, Loader2 } from "lucide-react";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
 import Card from "@/components/ui/card-new";
 import Button from "@/components/ui/button-new";
 import { useAccount } from "wagmi";
@@ -270,10 +268,10 @@ export default function ContributionPage() {
                   </p>
                   <CampaignSplitsForm
                     campaign={campaign}
-                    onSuccess={() => {
-                      toast.success("Contribution completed successfully!");
-                      router.push(`/campaigns/${campaignId}`);
-                    }}
+                    // onSuccess={() => {
+                    //   toast.success("Contribution completed successfully!");
+                    //   router.push(`/campaigns/${campaignId}`);
+                    // }}
                   />
                 </div>
               ) : (

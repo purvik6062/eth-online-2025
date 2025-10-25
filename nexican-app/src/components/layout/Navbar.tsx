@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { Menu, X, Wallet, CircleUserRound, Settings } from 'lucide-react';
 import ConnectWallet from '../blocks/connect-wallet';
@@ -8,15 +9,24 @@ import NexusInitButton from '../nexus-init';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const pathname = usePathname();
 
   const navigation = [
     { name: 'Home', href: '/' },
     { name: 'Campaigns', href: '/campaigns' },
     { name: 'Create', href: '/create' },
+    { name: 'Activities', href: '/activities' },
     // { name: 'Payroll', href: '/payroll' },
     { name: 'DAO', href: '/dao' },
     // { name: 'Profile', href: '/profile' },
   ];
+
+  const isActive = (href: string) => {
+    if (href === '/') {
+      return pathname === '/';
+    }
+    return pathname.startsWith(href);
+  };
 
   return (
     <nav className="bg-background border-b-2 border-foreground sticky top-0 z-50">
@@ -36,7 +46,10 @@ export default function Navbar() {
               <Link
                 key={item.name}
                 href={item.href}
-                className="text-foreground hover:text-primary transition-colors duration-200 font-medium"
+                className={`transition-colors duration-200 font-medium ${isActive(item.href)
+                  ? 'text-primary bg-primary/10 px-3 py-1 rounded-lg border-2 border-primary'
+                  : 'text-foreground hover:text-primary'
+                  }`}
               >
                 {item.name}
               </Link>
@@ -71,13 +84,25 @@ export default function Navbar() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className="block px-3 py-2 text-foreground hover:text-primary transition-colors font-medium"
+                  className={`block px-3 py-2 transition-colors font-medium rounded-lg ${isActive(item.href)
+                    ? 'text-primary bg-primary/10 border-2 border-primary'
+                    : 'text-foreground hover:text-primary'
+                    }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.name}
                 </Link>
               ))}
-              <Link href={'/profile'} className="block px-3 py-2 text-foreground hover:text-primary transition-colors font-medium">Profile</Link>
+              <Link
+                href={'/profile'}
+                className={`block px-3 py-2 transition-colors font-medium rounded-lg ${isActive('/profile')
+                  ? 'text-primary bg-primary/10 border-2 border-primary'
+                  : 'text-foreground hover:text-primary'
+                  }`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Profile
+              </Link>
               {/* <div className="pt-4 space-y-2">
                 <button className="w-full btn-secondary flex items-center justify-center space-x-2">
                   <Wallet className="w-4 h-4" />

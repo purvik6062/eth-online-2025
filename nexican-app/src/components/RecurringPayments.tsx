@@ -5,7 +5,9 @@ import {
   useAccount,
   useWriteContract,
   useWaitForTransactionReceipt,
+  useChainId,
 } from "wagmi";
+import { useNotification } from "@blockscout/app-sdk";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -132,6 +134,8 @@ export default function RecurringPayments({
   const { address, isConnected } = useAccount();
   const { nexusSDK, intentRefCallback, allowanceRefCallback, handleInit } =
     useNexus();
+  const { openTxToast } = useNotification();
+  const chainId = useChainId();
   const useSponsoredApprovals =
     process.env.NEXT_PUBLIC_NEXUS_USE_SPONSORED_APPROVALS === "true";
   const [destinationChain, setDestinationChain] = useState<SupportedChainKey>(
@@ -167,6 +171,19 @@ export default function RecurringPayments({
     useWaitForTransactionReceipt({
       hash: createHash,
     });
+
+  // Show notifications for successful transactions
+  useEffect(() => {
+    if (isApprovalConfirmed && approveHash) {
+      openTxToast(chainId.toString(), approveHash);
+    }
+  }, [isApprovalConfirmed, approveHash, chainId, openTxToast]);
+
+  useEffect(() => {
+    if (isCreateConfirmed && createHash) {
+      openTxToast(chainId.toString(), createHash);
+    }
+  }, [isCreateConfirmed, createHash, chainId, openTxToast]);
 
   const chain = CHAIN_CONFIG[destinationChain];
 
@@ -239,6 +256,11 @@ export default function RecurringPayments({
 
       if (!transferResult?.success) {
         throw new Error("Failed to bridge USDC");
+      }
+
+      // Show notification for successful bridge transfer
+      if (transferResult?.transactionHash) {
+        openTxToast(chainId.toString(), transferResult.transactionHash);
       }
 
       setStatusText("Waiting for bridge confirmation...");
@@ -358,7 +380,7 @@ export default function RecurringPayments({
               id="chain"
               className="w-full p-2 border rounded-md"
               value={destinationChain}
-              onChange={() => {}}
+              onChange={() => { }}
               disabled
             >
               <option value="sepolia">Sepolia</option>
@@ -374,7 +396,7 @@ export default function RecurringPayments({
               type="text"
               placeholder="0x..."
               value={recipient}
-              onChange={() => {}}
+              onChange={() => { }}
               readOnly
               disabled
               className="text-black bg-gray-50"

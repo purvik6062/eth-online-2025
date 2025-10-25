@@ -6,7 +6,9 @@ import {
   useReadContract,
   useWriteContract,
   useWaitForTransactionReceipt,
+  useChainId,
 } from "wagmi";
+import { useNotification } from "@blockscout/app-sdk";
 import Card from "@/components/ui/card-new";
 import Button from "@/components/ui/button-new";
 import { Label } from "@/components/ui/label";
@@ -20,8 +22,10 @@ import {
   Pause,
   Play,
   X,
+  CopyIcon,
 } from "lucide-react";
 import { isAddress, formatEther } from "viem";
+import { toast } from "react-toastify";
 
 // Helper function to format addresses
 const formatAddress = (address: string) => {
@@ -33,6 +37,7 @@ const formatAddress = (address: string) => {
 const copyToClipboard = async (text: string) => {
   try {
     await navigator.clipboard.writeText(text);
+    toast.success("Address copied to clipboard");
   } catch (err) {
     console.error("Failed to copy: ", err);
   }
@@ -168,6 +173,8 @@ function SubscriptionCard({
   onUpdate,
 }: SubscriptionCardProps) {
   const { address } = useAccount();
+  const chainId = useChainId();
+  const { openTxToast } = useNotification();
   const { writeContract, data: hash, error, isPending } = useWriteContract();
   const { isLoading: isConfirming, isSuccess: isConfirmed } =
     useWaitForTransactionReceipt({ hash });
@@ -262,10 +269,12 @@ function SubscriptionCard({
   };
 
   useEffect(() => {
-    if (isConfirmed) {
+    if (isConfirmed && hash) {
+      // Show Blockscout notification
+      openTxToast(chainId.toString(), hash);
       onUpdate();
     }
-  }, [isConfirmed, onUpdate]);
+  }, [isConfirmed, hash, chainId, openTxToast, onUpdate]);
 
   if (isLoadingSubscription || !subscription) {
     return (
@@ -333,10 +342,10 @@ function SubscriptionCard({
               </p>
               <button
                 onClick={() => copyToClipboard(sub.subscriber)}
-                className="text-foreground/60 hover:text-foreground text-sm transition-colors"
+                className="cursor-pointer text-foreground/60 hover:text-foreground text-sm transition-colors"
                 title="Copy full address"
               >
-                📋
+                <CopyIcon className="h-4 w-4" />
               </button>
             </div>
           </div>
@@ -348,10 +357,10 @@ function SubscriptionCard({
               </p>
               <button
                 onClick={() => copyToClipboard(sub.recipient)}
-                className="text-foreground/60 hover:text-foreground text-sm transition-colors"
+                className="cursor-pointer text-foreground/60 hover:text-foreground text-sm transition-colors"
                 title="Copy full address"
               >
-                📋
+                <CopyIcon className="h-4 w-4" />
               </button>
             </div>
           </div>
@@ -556,15 +565,54 @@ export default function ManagePayment() {
     testError,
   ]);
 
-  if (!isConnected) {
+  // Show loading state while checking connection and loading data
+  if (!isConnected || isLoadingUserSubscriptions || isLoadingReceivedSubscriptions) {
     return (
-      <Card className="w-full max-w-2xl mx-auto" hover={false}>
-        <div className="flex items-center justify-center p-8">
-          <p className="text-lg text-foreground font-semibold">
-            Please connect your wallet to view subscriptions
-          </p>
+      <div className="w-full max-w-6xl mx-auto space-y-8">
+        <div className="flex items-center justify-between">
+          <div className="text-4xl font-bold bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent">
+            Manage Recurring Payments
+          </div>
+          <div className="flex gap-4">
+            <div className="flex items-center gap-3">
+              <Label className="text-foreground font-semibold">Chain:</Label>
+              <select
+                className="input-neobrutal h-12 px-4 text-foreground font-semibold"
+                value={selectedChain}
+                onChange={(e) =>
+                  setSelectedChain(e.target.value as SupportedChainKey)
+                }
+              >
+                <option value="sepolia">Sepolia</option>
+                <option value="arbitrumSepolia">Arbitrum Sepolia</option>
+              </select>
+            </div>
+            <Button onClick={handleRefresh} variant="outline" size="md">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+          </div>
         </div>
-      </Card>
+
+        <Card hover={false}>
+          <div className="flex items-center justify-center p-12">
+            <div className="text-center space-y-4">
+              <RefreshCw className="h-12 w-12 animate-spin text-primary mx-auto" />
+              <div className="space-y-2">
+                <p className="text-lg text-foreground font-semibold">
+                  {!isConnected ? "Wallet Not Connected" : "Loading subscriptions..."}
+                </p>
+                <p className="text-sm text-foreground/70">
+                  {!isConnected
+                    ? "Please connect your wallet to view and manage your subscriptions"
+                    : "Fetching your subscription data from the blockchain"
+                  }
+                </p>
+              </div>
+            </div>
+          </div>
+        </Card>
+      </div>
     );
   }
 
@@ -664,7 +712,7 @@ export default function ManagePayment() {
             <div className="border-b-2 border-foreground pb-4 mb-6">
               <h2 className="text-2xl font-bold text-foreground">Your Created Subscriptions</h2>
             </div>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 md:grid-cols-2">
               {userSubscriptionIds && userSubscriptionIds.length > 0 ? userSubscriptionIds.map((id) => (
                 <SubscriptionCard
                   key={`${id}-${refreshKey}`}

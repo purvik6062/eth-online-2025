@@ -24,6 +24,8 @@ import IntentModal from "@/components/blocks/intent-modal";
 import AllowanceModal from "@/components/blocks/allowance-modal";
 import useListenTransaction from "@/hooks/useListenTransactions";
 import { toast } from "react-toastify";
+import { useNotification } from "@blockscout/app-sdk";
+import { useChainId } from "wagmi";
 
 type ShareMode = "equal" | "percent" | "custom";
 type Recipient = { address: string; share: string };
@@ -43,15 +45,16 @@ interface Campaign {
 
 interface CampaignSplitsFormProps {
   campaign: Campaign;
-  onSuccess: () => void;
+  // onSuccess: () => void;
 }
 
 export default function CampaignSplitsForm({
-  campaign,
-  onSuccess,
+  campaign
 }: CampaignSplitsFormProps) {
   const { nexusSDK, intentRefCallback, allowanceRefCallback, handleInit } =
     useNexus();
+  const { openTxToast } = useNotification();
+  const chainId = useChainId();
   const useSponsoredApprovals =
     process.env.NEXT_PUBLIC_NEXUS_USE_SPONSORED_APPROVALS === "true";
 
@@ -271,6 +274,11 @@ export default function CampaignSplitsForm({
               result,
             });
             console.log(`Transfer ${i + 1} completed successfully`);
+
+            // Show Blockscout notification for successful transfer
+            if (result?.transactionHash) {
+              openTxToast(chainId.toString(), result.transactionHash);
+            }
           } else {
             failedTransfers.push({
               index: i + 1,
@@ -327,8 +335,8 @@ export default function CampaignSplitsForm({
 
           const result = await response.json();
           if (result.success) {
-            toast.success("Contribution recorded successfully!");
-            onSuccess();
+            toast.success("Contribution completed successfully!");
+            // onSuccess();
           }
         } catch (dbError) {
           console.error("Error recording contribution:", dbError);
@@ -486,7 +494,7 @@ export default function CampaignSplitsForm({
                     <Input
                       id={`addr-${idx}`}
                       value={r.address}
-                      onChange={() => {}}
+                      onChange={() => { }}
                       readOnly
                       disabled
                       placeholder="0x..."
