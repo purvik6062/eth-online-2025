@@ -13,20 +13,13 @@ import {
 } from "@avail-project/nexus-core";
 import ChainSelect from "@/components/blocks/chain-select";
 import TokenSelect from "@/components/blocks/token-select";
-import { BridgeModeSelector } from "@/components/bridge/BridgeModeSelector";
-// import { TokenSelector } from "./TokenSelector";
-// import { ChainSelector } from "./ChainSelector";
-// import { AmountInput } from "@/components/blocks/amount-input";
-// import { TransactionPreview } from "@/components/blocks/transaction-preview";
+// Removed unused imports for cleaner code
 import { TransactionStatus } from "@/components/bridge/TransactionStatus";
-
-type BridgeMode = "bridge" | "swap";
 
 export function BridgeSwapForm() {
   const { nexusSDK, handleInit } = useNexus();
 
   // Form state
-  const [mode, setMode] = useState<BridgeMode>("bridge");
   const [sourceChain, setSourceChain] = useState<SUPPORTED_CHAINS_IDS | null>(
     SUPPORTED_CHAINS.SEPOLIA
   );
@@ -35,8 +28,6 @@ export function BridgeSwapForm() {
   const [sourceToken, setSourceToken] = useState<SUPPORTED_TOKENS | null>(
     "ETH"
   );
-  const [destinationToken, setDestinationToken] =
-    useState<SUPPORTED_TOKENS | null>(null);
   const [amount, setAmount] = useState<string>("");
 
   // Transaction state
@@ -71,16 +62,10 @@ export function BridgeSwapForm() {
     }
   }, [nexusSDK?.isInitialized()]);
 
-  // Handle mode change
-  const handleModeChange = (newMode: BridgeMode) => {
-    setMode(newMode);
+  // Clear errors and success messages
+  const clearMessages = () => {
     setError(null);
     setSuccess(null);
-
-    // Reset form when switching modes
-    if (newMode === "bridge") {
-      setDestinationToken(null);
-    }
   };
 
   // Handle bridge transaction
@@ -97,8 +82,7 @@ export function BridgeSwapForm() {
 
     try {
       setIsSubmitting(true);
-      setError(null);
-      setSuccess(null);
+      clearMessages();
 
       console.log("Starting bridge transaction:", {
         token: sourceToken,
@@ -131,171 +115,130 @@ export function BridgeSwapForm() {
     }
   };
 
-  // Handle swap transaction
-  const handleSwap = async () => {
-    if (
-      !nexusSDK?.isInitialized() ||
-      !sourceToken ||
-      !destinationToken ||
-      !destinationChain ||
-      !amount
-    ) {
-      setError("Please fill in all required fields");
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-      setError(null);
-      setSuccess(null);
-
-      console.log("Starting XCS swap:", {
-        fromToken: sourceToken,
-        toToken: destinationToken,
-        amount,
-        chainId: destinationChain,
-      });
-
-      // For now, we'll use bridge as a workaround for XCS swap
-      // In a real implementation, you would use a proper XCS protocol
-      const result = await nexusSDK.bridge({
-        token: sourceToken,
-        amount,
-        chainId: destinationChain,
-      });
-
-      if (result?.success) {
-        setSuccess(
-          `Successfully swapped ${amount} ${sourceToken} to ${destinationToken} on ${destinationChain}`
-        );
-        setTransactionHash(result.transactionHash || null);
-        await fetchUnifiedBalance(); // Refresh balance
-      } else {
-        setError("Swap transaction failed");
-      }
-    } catch (error) {
-      console.error("Swap error:", error);
-      setError(
-        error instanceof Error ? error.message : "Swap transaction failed"
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Handle form submission
-  const handleSubmit = async () => {
-    if (mode === "bridge") {
-      await handleBridge();
-    } else {
-      await handleSwap();
-    }
-  };
-
   // Check if form is valid
   const isFormValid = () => {
-    if (!sourceToken || !destinationChain || !amount) return false;
-    if (mode === "swap" && !destinationToken) return false;
-    return true;
+    return !!(sourceToken && destinationChain && amount);
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      {/* Mode Selector */}
-      <BridgeModeSelector mode={mode} onModeChange={handleModeChange} />
+    <div className="max-w-4xl mx-auto space-y-8">
+      {/* Header */}
+      <div className="text-center space-y-2">
+        <h2 className="text-3xl font-bold">🌉 Bridge Tokens</h2>
+        <p className="text-muted-foreground">
+          Transfer your tokens across different chains seamlessly
+        </p>
+      </div>
 
       {/* Main Form */}
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {mode === "bridge" ? "🌉 Bridge Tokens" : "🔄 Swap Tokens"}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Source Chain */}
-          <div>
-            <Label>Source Chain</Label>
-            <ChainSelect
-              selectedChain={sourceChain ?? SUPPORTED_CHAINS.SEPOLIA}
-              handleSelect={setSourceChain}
-              isTestnet
-            />
-          </div>
-
-          {/* Destination Chain */}
-          <div>
-            <Label>Destination Chain</Label>
-            <ChainSelect
-              selectedChain={destinationChain ?? SUPPORTED_CHAINS.SEPOLIA}
-              handleSelect={setDestinationChain}
-              isTestnet
-            />
-          </div>
-
-          {/* Source Token */}
-          <div>
-            <Label>Source Token</Label>
-            <TokenSelect
-              selectedChain={(
-                sourceChain ?? SUPPORTED_CHAINS.SEPOLIA
-              ).toString()}
-              selectedToken={sourceToken ?? "ETH"}
-              handleTokenSelect={setSourceToken}
-              isTestnet
-            />
-          </div>
-
-          {/* Destination Token (for swap mode) */}
-          {mode === "swap" && (
-            <div>
-              <Label>Destination Token</Label>
-              <TokenSelect
-                selectedChain={(
-                  destinationChain ?? SUPPORTED_CHAINS.SEPOLIA
-                ).toString()}
-                selectedToken={destinationToken ?? "USDC"}
-                handleTokenSelect={setDestinationToken}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Source Section */}
+        <Card className="border-2 hover:border-primary/20 transition-colors">
+          <CardHeader>
+            <CardTitle className="text-center text-lg">From</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Source Chain */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Source Chain</Label>
+              <ChainSelect
+                selectedChain={sourceChain ?? SUPPORTED_CHAINS.SEPOLIA}
+                handleSelect={setSourceChain}
                 isTestnet
               />
             </div>
-          )}
 
-          {/* Amount */}
-          <div>
-            <Label>Amount</Label>
-            <Input
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0.0"
-            />
-          </div>
-
-          {/* Submit Button */}
-          <Button
-            onClick={handleSubmit}
-            disabled={
-              !isFormValid() || isSubmitting || !nexusSDK?.isInitialized()
-            }
-            className="w-full"
-          >
-            {isSubmitting
-              ? mode === "bridge"
-                ? "Bridging..."
-                : "Swapping..."
-              : mode === "bridge"
-              ? "Bridge Tokens"
-              : "Swap Tokens"}
-          </Button>
-
-          {/* SDK Status */}
-          {!nexusSDK?.isInitialized() && (
-            <div className="text-center">
-              <Button onClick={handleInit} variant="outline">
-                Initialize Nexus SDK
-              </Button>
+            {/* Source Token */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Token</Label>
+              <TokenSelect
+                selectedChain={(
+                  sourceChain ?? SUPPORTED_CHAINS.SEPOLIA
+                ).toString()}
+                selectedToken={sourceToken ?? "ETH"}
+                handleTokenSelect={setSourceToken}
+                isTestnet
+              />
             </div>
-          )}
+
+            {/* Amount */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Amount</Label>
+              <Input
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="0.0"
+                className="text-lg"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Destination Section */}
+        <Card className="border-2 hover:border-primary/20 transition-colors">
+          <CardHeader>
+            <CardTitle className="text-center text-lg">To</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Destination Chain */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Destination Chain</Label>
+              <ChainSelect
+                selectedChain={destinationChain ?? SUPPORTED_CHAINS.SEPOLIA}
+                handleSelect={setDestinationChain}
+                isTestnet
+              />
+            </div>
+
+            {/* Destination Token (same as source for bridge) */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Token</Label>
+              <div className="p-3 border rounded-md bg-muted/50 text-center">
+                <span className="text-sm text-muted-foreground">
+                  {sourceToken || "Select source token first"}
+                </span>
+              </div>
+            </div>
+
+            {/* Amount Preview */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Amount</Label>
+              <div className="p-3 border rounded-md bg-muted/50 text-center">
+                <span className="text-sm text-muted-foreground">
+                  {amount || "0.0"} {sourceToken || ""}
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Action Section */}
+      <Card className="border-2">
+        <CardContent className="pt-6">
+          <div className="space-y-4">
+            {/* Submit Button */}
+            <Button
+              onClick={handleBridge}
+              disabled={
+                !isFormValid() || isSubmitting || !nexusSDK?.isInitialized()
+              }
+              className="w-full h-12 text-lg font-semibold"
+              size="lg"
+            >
+              {isSubmitting ? "Bridging..." : "Bridge Tokens"}
+            </Button>
+
+            {/* SDK Status */}
+            {!nexusSDK?.isInitialized() && (
+              <div className="text-center">
+                <Button onClick={handleInit} variant="outline" size="lg">
+                  Initialize Nexus SDK
+                </Button>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 
@@ -306,33 +249,6 @@ export function BridgeSwapForm() {
         transactionHash={transactionHash}
         isLoading={isSubmitting}
       />
-
-      {/* Unified Balance Display */}
-      {unifiedBalance && (
-        <Card>
-          <CardHeader>
-            <CardTitle>💰 Your Unified Balance</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {unifiedBalance
-                .filter((token) => parseFloat(token.balance) > 0)
-                .slice(0, 5)
-                .map((token) => (
-                  <div
-                    key={token.symbol}
-                    className="flex justify-between items-center p-2 bg-gray-50 rounded"
-                  >
-                    <span className="font-medium">{token.symbol}</span>
-                    <span className="text-sm text-gray-600">
-                      ${token.balanceInFiat.toFixed(2)}
-                    </span>
-                  </div>
-                ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }

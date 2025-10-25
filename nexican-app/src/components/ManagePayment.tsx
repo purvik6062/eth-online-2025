@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import {
   useAccount,
   useReadContract,
@@ -23,9 +24,16 @@ import {
   Play,
   X,
   CopyIcon,
+  ExternalLink,
 } from "lucide-react";
 import { isAddress, formatEther } from "viem";
-import { toast } from "react-hot-toast"; 
+import { toast } from "react-hot-toast";
+import Link from "next/link";
+import {
+  SUPPORTED_CHAINS,
+  type SUPPORTED_CHAINS_IDS,
+  CHAIN_METADATA,
+} from "@avail-project/nexus-core";
 
 // Helper function to format addresses
 const formatAddress = (address: string) => {
@@ -43,7 +51,11 @@ const copyToClipboard = async (text: string) => {
   }
 };
 
-type SupportedChainKey = "sepolia" | "arbitrumSepolia";
+type SupportedChainKey =
+  | "sepolia"
+  | "arbitrumSepolia"
+  | "baseSepolia"
+  | "optimismSepolia";
 
 const CHAIN_CONFIG: Record<
   SupportedChainKey,
@@ -52,15 +64,45 @@ const CHAIN_CONFIG: Record<
   sepolia: {
     id: 11155111,
     name: "Sepolia",
-    delegationManager: "0xe220442A5aEa25dee9194c07396C082468f9f62F",
+    delegationManager: "0x9E89b0F0049e22E679C3A3bE4938DF1dCc08ec15",
     usdc: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
   },
   arbitrumSepolia: {
     id: 421614,
     name: "Arbitrum Sepolia",
-    delegationManager: "0x03bd3553E02062D77Fb8Beda2207846063791115",
+    delegationManager: "0x9edE152D33D7450E08B8eAec6bDA5E7D1F98F45d",
     usdc: "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d",
   },
+  baseSepolia: {
+    id: 84532,
+    name: "Base Sepolia",
+    delegationManager: "0x5C009421fb32B13Ac739E1fe95a4f6Ff4C132882", 
+    usdc: "0x036CbD53842c5426634e7929541eC2318f3dCF7e", 
+  },
+  optimismSepolia: {
+    id: 11155420,
+    name: "Optimism Sepolia",
+    delegationManager: "0x32dDe10DBD35910Be56CdcDc47353488F798b8bb", // Dummy address
+    usdc: "0x5fd84259d66Cd46123540766Be93DFE2D0b02CC2", // Optimism Sepolia USDC
+  },
+};
+
+// Helper function to get chain ID from SupportedChainKey
+const getChainIdFromSupportedKey = (
+  key: SupportedChainKey
+): SUPPORTED_CHAINS_IDS => {
+  switch (key) {
+    case "sepolia":
+      return SUPPORTED_CHAINS.SEPOLIA;
+    case "arbitrumSepolia":
+      return SUPPORTED_CHAINS.ARBITRUM_SEPOLIA;
+    case "baseSepolia":
+      return SUPPORTED_CHAINS.BASE_SEPOLIA;
+    case "optimismSepolia":
+      return SUPPORTED_CHAINS.OPTIMISM_SEPOLIA;
+    default:
+      return SUPPORTED_CHAINS.SEPOLIA;
+  }
 };
 
 // ABI for EIP7702DelegationManager
@@ -159,6 +201,36 @@ interface Subscription {
   nextPaymentTime: bigint;
   isActive: boolean;
   isPaused: boolean;
+}
+
+interface DatabaseSubscription {
+  _id: string;
+  subscriptionId: string;
+  campaignId: string;
+  subscriberAddress: string;
+  recipientAddress: string;
+  paymentToken: string;
+  amountPerPayment: number;
+  paymentFrequency: string;
+  numberOfPayments: number;
+  completedPayments: number;
+  status: "active" | "completed" | "cancelled" | "pending";
+  startDate: string;
+  createdAt: string;
+}
+
+interface Campaign {
+  campaignId: string;
+  name: string;
+  description: string;
+  goal: number;
+  raised: number;
+  deadline: string;
+  backers: number;
+  chain: string;
+  status: string;
+  userAddress: string;
+  createdAt: string;
 }
 
 interface SubscriptionCardProps {
@@ -335,9 +407,14 @@ function SubscriptionCard({
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <Label className="text-foreground font-semibold text-sm">Subscriber</Label>
+            <Label className="text-foreground font-semibold text-sm">
+              Subscriber
+            </Label>
             <div className="flex items-center gap-2 bg-secondary border-2 border-foreground px-3 py-2 rounded-lg">
-              <p className="font-mono text-sm flex-1 text-foreground" title={sub.subscriber}>
+              <p
+                className="font-mono text-sm flex-1 text-foreground"
+                title={sub.subscriber}
+              >
                 {formatAddress(sub.subscriber)}
               </p>
               <button
@@ -350,9 +427,14 @@ function SubscriptionCard({
             </div>
           </div>
           <div className="space-y-2">
-            <Label className="text-foreground font-semibold text-sm">Recipient</Label>
+            <Label className="text-foreground font-semibold text-sm">
+              Recipient
+            </Label>
             <div className="flex items-center gap-2 bg-secondary border-2 border-foreground px-3 py-2 rounded-lg">
-              <p className="font-mono text-sm flex-1 text-foreground" title={sub.recipient}>
+              <p
+                className="font-mono text-sm flex-1 text-foreground"
+                title={sub.recipient}
+              >
                 {formatAddress(sub.recipient)}
               </p>
               <button
@@ -368,13 +450,17 @@ function SubscriptionCard({
 
         <div className="grid grid-cols-2 gap-6">
           <div className="bg-secondary border-2 border-foreground rounded-lg p-4">
-            <Label className="text-foreground font-semibold text-sm">Amount per Interval</Label>
+            <Label className="text-foreground font-semibold text-sm">
+              Amount per Interval
+            </Label>
             <p className="text-xl font-bold text-foreground mt-1">
               {formatAmount(sub.amountPerInterval)} USDC
             </p>
           </div>
           <div className="bg-secondary border-2 border-foreground rounded-lg p-4">
-            <Label className="text-foreground font-semibold text-sm">Total Amount</Label>
+            <Label className="text-foreground font-semibold text-sm">
+              Total Amount
+            </Label>
             <p className="text-xl font-bold text-foreground mt-1">
               {formatAmount(sub.totalAmount)} USDC
             </p>
@@ -383,27 +469,39 @@ function SubscriptionCard({
 
         <div className="grid grid-cols-2 gap-6">
           <div className="bg-secondary border-2 border-foreground rounded-lg p-4">
-            <Label className="text-foreground font-semibold text-sm">Remaining Amount</Label>
+            <Label className="text-foreground font-semibold text-sm">
+              Remaining Amount
+            </Label>
             <p className="text-xl font-bold text-foreground mt-1">
               {formatAmount(sub.remainingAmount)} USDC
             </p>
           </div>
           <div className="bg-secondary border-2 border-foreground rounded-lg p-4">
-            <Label className="text-foreground font-semibold text-sm">Periods Remaining</Label>
-            <p className="text-xl font-bold text-foreground mt-1">{sub.periodsRemaining.toString()}</p>
+            <Label className="text-foreground font-semibold text-sm">
+              Periods Remaining
+            </Label>
+            <p className="text-xl font-bold text-foreground mt-1">
+              {sub.periodsRemaining.toString()}
+            </p>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-6">
           <div className="bg-secondary border-2 border-foreground rounded-lg p-4">
-            <Label className="text-foreground font-semibold text-sm">Next Payment</Label>
+            <Label className="text-foreground font-semibold text-sm">
+              Next Payment
+            </Label>
             <p className="text-xl font-bold text-foreground mt-1">
               {timeUntilDue ? formatTime(timeUntilDue) : "N/A"}
             </p>
           </div>
           <div className="bg-secondary border-2 border-foreground rounded-lg p-4">
-            <Label className="text-foreground font-semibold text-sm">Chain</Label>
-            <p className="text-xl font-bold text-foreground mt-1">{chainConfig.name}</p>
+            <Label className="text-foreground font-semibold text-sm">
+              Chain
+            </Label>
+            <p className="text-xl font-bold text-foreground mt-1">
+              {chainConfig.name}
+            </p>
           </div>
         </div>
 
@@ -467,11 +565,239 @@ function SubscriptionCard({
   );
 }
 
+// Component to display database subscriptions with campaign info
+function DatabaseSubscriptionCard({
+  subscription,
+  campaign,
+}: {
+  subscription: DatabaseSubscription;
+  campaign?: Campaign;
+}) {
+  const formatAmount = (amount: number) => {
+    return (amount / 1_000_000).toFixed(6); // USDC has 6 decimals
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "active":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "completed":
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "cancelled":
+        return "bg-red-100 text-red-800 border-red-200";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
+
+  const getProgressPercentage = (completed: number, total: number) => {
+    return total > 0 ? (completed / total) * 100 : 0;
+  };
+
+  const progressPercentage = getProgressPercentage(
+    subscription.completedPayments,
+    subscription.numberOfPayments
+  );
+
+  return (
+    <Card className="w-full" hover={true}>
+      <div className="border-b-2 border-foreground pb-4 mb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-xl font-bold text-foreground">
+              Subscription #{subscription.subscriptionId}
+            </h3>
+            {campaign && (
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-sm text-foreground/70">Campaign:</span>
+                <Link
+                  href={`/campaigns/${campaign.campaignId}`}
+                  className="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+                >
+                  {campaign.name}
+                  <ExternalLink className="w-3 h-3" />
+                </Link>
+              </div>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <span
+              className={`px-3 py-1 rounded-lg text-xs font-semibold border-2 border-foreground ${getStatusColor(
+                subscription.status
+              )}`}
+            >
+              {subscription.status.charAt(0).toUpperCase() +
+                subscription.status.slice(1)}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-6">
+        {/* Campaign Info */}
+        {campaign && (
+          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              Campaign Details
+            </h4>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-blue-700 font-medium">Goal:</span>
+                <span className="ml-2">${campaign.goal.toLocaleString()}</span>
+              </div>
+              <div>
+                <span className="text-blue-700 font-medium">Raised:</span>
+                <span className="ml-2">
+                  ${campaign.raised.toLocaleString()}
+                </span>
+              </div>
+              <div>
+                <span className="text-blue-700 font-medium">Backers:</span>
+                <span className="ml-2">{campaign.backers}</span>
+              </div>
+              <div>
+                <span className="text-blue-700 font-medium">Chain:</span>
+                <span className="ml-2">{campaign.chain}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Subscription Details */}
+        <div className="grid grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-semibold text-foreground mb-2 flex items-center gap-2">
+                <DollarSign className="w-4 h-4" />
+                Payment Details
+              </h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-foreground/70">
+                    Amount per payment:
+                  </span>
+                  <span className="font-medium">
+                    {formatAmount(subscription.amountPerPayment)}{" "}
+                    {subscription.paymentToken}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-foreground/70">Frequency:</span>
+                  <span className="font-medium">
+                    {subscription.paymentFrequency}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-foreground/70">Total payments:</span>
+                  <span className="font-medium">
+                    {subscription.numberOfPayments}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-foreground/70">Completed:</span>
+                  <span className="font-medium">
+                    {subscription.completedPayments}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-semibold text-foreground mb-2 flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                Timeline
+              </h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-foreground/70">Start date:</span>
+                  <span className="font-medium">
+                    {new Date(subscription.startDate).toLocaleDateString()}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-foreground/70">Created:</span>
+                  <span className="font-medium">
+                    {new Date(subscription.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm">
+            <span className="text-foreground/70">Progress</span>
+            <span className="font-medium">
+              {subscription.completedPayments}/{subscription.numberOfPayments}{" "}
+              payments
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${progressPercentage}%` }}
+            />
+          </div>
+          <div className="text-xs text-foreground/60 text-center">
+            {progressPercentage.toFixed(1)}% complete
+          </div>
+        </div>
+
+        {/* Addresses */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <h4 className="font-semibold text-foreground mb-2">Subscriber</h4>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">
+                {formatAddress(subscription.subscriberAddress)}
+              </span>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => copyToClipboard(subscription.subscriberAddress)}
+              >
+                <CopyIcon className="w-3 h-3" />
+              </Button>
+            </div>
+          </div>
+          <div>
+            <h4 className="font-semibold text-foreground mb-2">Recipient</h4>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">
+                {formatAddress(subscription.recipientAddress)}
+              </span>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => copyToClipboard(subscription.recipientAddress)}
+              >
+                <CopyIcon className="w-3 h-3" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 export default function ManagePayment() {
   const { address, isConnected } = useAccount();
   const [selectedChain, setSelectedChain] =
     useState<SupportedChainKey>("sepolia");
   const [refreshKey, setRefreshKey] = useState(0);
+  const [databaseSubscriptions, setDatabaseSubscriptions] = useState<
+    DatabaseSubscription[]
+  >([]);
+  const [campaigns, setCampaigns] = useState<Record<string, Campaign>>({});
+  const [loadingDatabase, setLoadingDatabase] = useState(false);
 
   const chainConfig = CHAIN_CONFIG[selectedChain];
 
@@ -523,6 +849,66 @@ export default function ManagePayment() {
     handleRefresh();
   };
 
+  // Fetch database subscriptions with campaign info
+  const fetchDatabaseSubscriptions = async () => {
+    if (!address) return;
+
+    setLoadingDatabase(true);
+    try {
+      // Fetch user's subscriptions from database
+      const subscriptionsResponse = await fetch(
+        `/api/subscriptions?user=${address}`
+      );
+      const subscriptionsResult = await subscriptionsResponse.json();
+
+      if (subscriptionsResult.success) {
+        const subscriptions = subscriptionsResult.data;
+        setDatabaseSubscriptions(subscriptions);
+
+        // Fetch campaign details for each subscription
+        const campaignIds = [
+          ...new Set(
+            subscriptions.map((sub: DatabaseSubscription) => sub.campaignId)
+          ),
+        ];
+        const campaignPromises = campaignIds.map(async (campaignId) => {
+          try {
+            const response = await fetch(`/api/campaigns/${campaignId}`);
+            const result = await response.json();
+            return result.success
+              ? { campaignId, campaign: result.data }
+              : null;
+          } catch (error) {
+            console.error(`Error fetching campaign ${campaignId}:`, error);
+            return null;
+          }
+        });
+
+        const campaignResults = await Promise.all(campaignPromises);
+        const campaignMap: Record<string, Campaign> = {};
+        campaignResults.forEach((result) => {
+          if (result) {
+            campaignMap[result.campaignId as string] = result.campaign;
+          }
+        });
+
+        setCampaigns(campaignMap);
+      }
+    } catch (error) {
+      console.error("Error fetching database subscriptions:", error);
+      toast.error("Failed to load subscription data");
+    } finally {
+      setLoadingDatabase(false);
+    }
+  };
+
+  // Fetch database subscriptions on component mount and when address changes
+  useEffect(() => {
+    if (address) {
+      fetchDatabaseSubscriptions();
+    }
+  }, [address]);
+
   // Test basic contract call - try to get a subscription to see if contract is working
   const { data: testCall, error: testError } = useReadContract({
     address: chainConfig.delegationManager as `0x${string}`,
@@ -566,7 +952,11 @@ export default function ManagePayment() {
   ]);
 
   // Show loading state while checking connection and loading data
-  if (!isConnected || isLoadingUserSubscriptions || isLoadingReceivedSubscriptions) {
+  if (
+    !isConnected ||
+    isLoadingUserSubscriptions ||
+    isLoadingReceivedSubscriptions
+  ) {
     return (
       <div className="w-full max-w-6xl mx-auto space-y-8">
         <div className="flex items-center justify-between">
@@ -576,16 +966,33 @@ export default function ManagePayment() {
           <div className="flex gap-4">
             <div className="flex items-center gap-3">
               <Label className="text-foreground font-semibold">Chain:</Label>
-              <select
-                className="input-neobrutal h-12 px-4 text-foreground font-semibold"
-                value={selectedChain}
-                onChange={(e) =>
-                  setSelectedChain(e.target.value as SupportedChainKey)
-                }
-              >
-                <option value="sepolia">Sepolia</option>
-                <option value="arbitrumSepolia">Arbitrum Sepolia</option>
-              </select>
+              <div className="flex items-center gap-2 input-neobrutal h-12 px-4 text-foreground font-semibold">
+                <Image
+                  src={
+                    CHAIN_METADATA[getChainIdFromSupportedKey(selectedChain)]
+                      ?.logo
+                  }
+                  alt={
+                    CHAIN_METADATA[getChainIdFromSupportedKey(selectedChain)]
+                      ?.name ?? ""
+                  }
+                  width={20}
+                  height={20}
+                  className="rounded-full"
+                />
+                <select
+                  className="bg-transparent text-foreground font-semibold outline-none"
+                  value={selectedChain}
+                  onChange={(e) =>
+                    setSelectedChain(e.target.value as SupportedChainKey)
+                  }
+                >
+                  <option value="sepolia">Sepolia</option>
+                  <option value="arbitrumSepolia">Arbitrum Sepolia</option>
+                  <option value="baseSepolia">Base Sepolia</option>
+                  <option value="optimismSepolia">Optimism Sepolia</option>
+                </select>
+              </div>
             </div>
             <Button onClick={handleRefresh} variant="outline" size="md">
               <RefreshCw className="h-4 w-4 mr-2" />
@@ -600,13 +1007,14 @@ export default function ManagePayment() {
               <RefreshCw className="h-12 w-12 animate-spin text-primary mx-auto" />
               <div className="space-y-2">
                 <p className="text-lg text-foreground font-semibold">
-                  {!isConnected ? "Wallet Not Connected" : "Loading subscriptions..."}
+                  {!isConnected
+                    ? "Wallet Not Connected"
+                    : "Loading subscriptions..."}
                 </p>
                 <p className="text-sm text-foreground/70">
                   {!isConnected
                     ? "Please connect your wallet to view and manage your subscriptions"
-                    : "Fetching your subscription data from the blockchain"
-                  }
+                    : "Fetching your subscription data from the blockchain"}
                 </p>
               </div>
             </div>
@@ -625,16 +1033,33 @@ export default function ManagePayment() {
         <div className="flex gap-4">
           <div className="flex items-center gap-3">
             <Label className="text-foreground font-semibold">Chain:</Label>
-            <select
-              className="input-neobrutal h-12 px-4 text-foreground font-semibold"
-              value={selectedChain}
-              onChange={(e) =>
-                setSelectedChain(e.target.value as SupportedChainKey)
-              }
-            >
-              <option value="sepolia">Sepolia</option>
-              <option value="arbitrumSepolia">Arbitrum Sepolia</option>
-            </select>
+            <div className="flex items-center gap-2 input-neobrutal h-12 px-4 text-foreground font-semibold">
+              <Image
+                src={
+                  CHAIN_METADATA[getChainIdFromSupportedKey(selectedChain)]
+                    ?.logo
+                }
+                alt={
+                  CHAIN_METADATA[getChainIdFromSupportedKey(selectedChain)]
+                    ?.name ?? ""
+                }
+                width={20}
+                height={20}
+                className="rounded-full"
+              />
+              <select
+                className="bg-transparent text-foreground font-semibold outline-none"
+                value={selectedChain}
+                onChange={(e) =>
+                  setSelectedChain(e.target.value as SupportedChainKey)
+                }
+              >
+                <option value="sepolia">Sepolia</option>
+                <option value="arbitrumSepolia">Arbitrum Sepolia</option>
+                <option value="baseSepolia">Base Sepolia</option>
+                <option value="optimismSepolia">Optimism Sepolia</option>
+              </select>
+            </div>
           </div>
           <Button onClick={handleRefresh} variant="outline" size="md">
             <RefreshCw className="h-4 w-4 mr-2" />
@@ -646,7 +1071,9 @@ export default function ManagePayment() {
       {/* Error Display */}
       {(userSubscriptionsError || receivedSubscriptionsError) && (
         <Card className="bg-red-100 border-2 border-red-500" hover={false}>
-          <h3 className="text-red-800 font-bold text-lg mb-4">Contract Error</h3>
+          <h3 className="text-red-800 font-bold text-lg mb-4">
+            Contract Error
+          </h3>
           {userSubscriptionsError && (
             <p className="text-red-700 text-sm mb-2 font-semibold">
               User Subscriptions Error: {userSubscriptionsError.message}
@@ -683,14 +1110,24 @@ export default function ManagePayment() {
         </Card>
       )}
 
-      <Tabs defaultValue="created" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 bg-secondary border-2 border-foreground rounded-lg p-1">
+      <Tabs defaultValue="database" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 bg-secondary border-2 border-foreground rounded-lg p-1">
+          <TabsTrigger
+            value="database"
+            className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-background transition-all duration-200 hover:bg-primary/20 font-semibold rounded-md"
+          >
+            <DollarSign className="h-4 w-4" />
+            <span>My Subscriptions</span>
+            <span className="bg-foreground text-background px-2 py-1 rounded-lg text-xs font-bold">
+              {databaseSubscriptions.length}
+            </span>
+          </TabsTrigger>
           <TabsTrigger
             value="created"
             className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-background transition-all duration-200 hover:bg-primary/20 font-semibold rounded-md"
           >
             <Calendar className="h-4 w-4" />
-            <span>Created</span>
+            <span>Contract Created</span>
             <span className="bg-foreground text-background px-2 py-1 rounded-lg text-xs font-bold">
               {userSubscriptionIds?.length || 0}
             </span>
@@ -700,31 +1137,94 @@ export default function ManagePayment() {
             className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-background transition-all duration-200 hover:bg-primary/20 font-semibold rounded-md"
           >
             <Users className="h-4 w-4" />
-            <span>Received</span>
+            <span>Contract Received</span>
             <span className="bg-foreground text-background px-2 py-1 rounded-lg text-xs font-bold">
               {receivedSubscriptionIds?.length || 0}
             </span>
           </TabsTrigger>
         </TabsList>
 
+        <TabsContent value="database" className="space-y-6">
+          <Card hover={false}>
+            <div className="border-b-2 border-foreground pb-4 mb-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-foreground">
+                  My Subscriptions with Campaign Info
+                </h2>
+                <Button
+                  onClick={fetchDatabaseSubscriptions}
+                  variant="outline"
+                  size="sm"
+                  disabled={loadingDatabase}
+                >
+                  <RefreshCw
+                    className={`h-4 w-4 mr-2 ${
+                      loadingDatabase ? "animate-spin" : ""
+                    }`}
+                  />
+                  Refresh
+                </Button>
+              </div>
+              <p className="text-foreground/70 mt-2">
+                View your subscriptions with campaign details and progress
+                tracking
+              </p>
+            </div>
+            <div className="grid gap-6 md:grid-cols-2">
+              {loadingDatabase ? (
+                <div className="col-span-full text-center p-8">
+                  <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+                  <p className="text-foreground/70">
+                    Loading subscription data...
+                  </p>
+                </div>
+              ) : databaseSubscriptions.length > 0 ? (
+                databaseSubscriptions.map((subscription) => (
+                  <DatabaseSubscriptionCard
+                    key={subscription._id}
+                    subscription={subscription}
+                    campaign={campaigns[subscription.campaignId]}
+                  />
+                ))
+              ) : (
+                <div className="col-span-full text-center p-8">
+                  <DollarSign className="h-12 w-12 mx-auto mb-4 text-foreground/50" />
+                  <p className="text-foreground/70 text-lg font-semibold mb-2">
+                    No subscriptions found
+                  </p>
+                  <p className="text-foreground/50 text-sm">
+                    Create your first subscription by contributing to a campaign
+                  </p>
+                </div>
+              )}
+            </div>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="created" className="space-y-6">
           <Card hover={false}>
             <div className="border-b-2 border-foreground pb-4 mb-6">
-              <h2 className="text-2xl font-bold text-foreground">Your Created Subscriptions</h2>
+              <h2 className="text-2xl font-bold text-foreground">
+                Your Created Subscriptions
+              </h2>
             </div>
             <div className="grid gap-6 md:grid-cols-2">
-              {userSubscriptionIds && userSubscriptionIds.length > 0 ? userSubscriptionIds.map((id) => (
-                <SubscriptionCard
-                  key={`${id}-${refreshKey}`}
-                  subscriptionId={Number(id)}
-                  chain={selectedChain}
-                  onUpdate={handleSubscriptionUpdate}
-                />
-              )) : <div className="text-center p-8 col-span-full">
-                <p className="text-foreground/70 text-lg font-semibold">
-                  No subscriptions created yet
-                </p>
-              </div>}
+              {userSubscriptionIds && userSubscriptionIds.length > 0 ? (
+                userSubscriptionIds.map((id) => (
+                  <SubscriptionCard
+                    key={`${id}-${refreshKey}`}
+                    subscriptionId={Number(id)}
+                    chain={selectedChain}
+                    onUpdate={handleSubscriptionUpdate}
+                  />
+                ))
+              ) : (
+                <div className="text-center p-8 col-span-full">
+                  <p className="text-foreground/70 text-lg font-semibold">
+                    No subscriptions created yet
+                  </p>
+                </div>
+              )}
             </div>
           </Card>
         </TabsContent>
@@ -732,7 +1232,9 @@ export default function ManagePayment() {
         <TabsContent value="received" className="space-y-6">
           <Card hover={false}>
             <div className="border-b-2 border-foreground pb-4 mb-6">
-              <h2 className="text-2xl font-bold text-foreground">Subscriptions You've Received</h2>
+              <h2 className="text-2xl font-bold text-foreground">
+                Subscriptions You've Received
+              </h2>
             </div>
             {isLoadingReceivedSubscriptions ? (
               <div className="flex items-center justify-center p-8">
@@ -752,7 +1254,9 @@ export default function ManagePayment() {
               </div>
             ) : (
               <div className="text-center p-8">
-                <p className="text-foreground/70 text-lg font-semibold">No subscriptions received yet</p>
+                <p className="text-foreground/70 text-lg font-semibold">
+                  No subscriptions received yet
+                </p>
               </div>
             )}
           </Card>
@@ -762,29 +1266,37 @@ export default function ManagePayment() {
       {/* How It Works Section */}
       <Card hover={false}>
         <div className="border-b-2 border-foreground pb-4 mb-6">
-          <h2 className="text-2xl font-bold text-foreground">How to Manage Recurring Payments</h2>
+          <h2 className="text-2xl font-bold text-foreground">
+            How to Manage Recurring Payments
+          </h2>
         </div>
         <div className="space-y-6">
           <div className="grid md:grid-cols-3 gap-6">
             <div className="bg-secondary border-2 border-foreground rounded-lg p-6">
-              <h3 className="font-bold text-foreground text-lg mb-3">As Subscriber</h3>
+              <h3 className="font-bold text-foreground text-lg mb-3">
+                As Subscriber
+              </h3>
               <p className="text-foreground/80">
                 Pause, resume, or cancel your subscriptions. Monitor payment
                 status and remaining amounts.
               </p>
             </div>
             <div className="bg-secondary border-2 border-foreground rounded-lg p-6">
-              <h3 className="font-bold text-foreground text-lg mb-3">As Recipient</h3>
+              <h3 className="font-bold text-foreground text-lg mb-3">
+                As Recipient
+              </h3>
               <p className="text-foreground/80">
                 Process due payments when they become available. View incoming
                 subscription details.
               </p>
             </div>
             <div className="bg-secondary border-2 border-foreground rounded-lg p-6">
-              <h3 className="font-bold text-foreground text-lg mb-3">Chain Management</h3>
+              <h3 className="font-bold text-foreground text-lg mb-3">
+                Chain Management
+              </h3>
               <p className="text-foreground/80">
-                Switch between Sepolia and Arbitrum Sepolia to manage
-                subscriptions on different networks.
+                Switch between Sepolia, Arbitrum Sepolia, Base Sepolia, and
+                Optimism Sepolia to manage subscriptions on different networks.
               </p>
             </div>
           </div>
