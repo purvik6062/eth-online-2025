@@ -36,10 +36,10 @@ const AllowanceModal = ({ data }: { data: OnAllowanceHookData }) => {
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleDeny()}>
-      <DialogContent className="gap-y-3">
+      <DialogContent className="gap-y-3 bg-background border-2 border-foreground/20">
         <DialogHeader>
-          <DialogTitle>Approve Allowances</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-foreground">Approve Allowances</DialogTitle>
+          <DialogDescription className="text-foreground/70">
             The following allowances are required to continue.
           </DialogDescription>
         </DialogHeader>
@@ -47,16 +47,18 @@ const AllowanceModal = ({ data }: { data: OnAllowanceHookData }) => {
           {sources.map((s, i) => (
             <div
               key={`${s.token}-${s.chain}-${i}`}
-              className="rounded-md border p-3"
+              className="rounded-lg border-2 border-foreground/20 bg-secondary/30 p-4"
             >
               <div className="flex items-center justify-between">
                 <div className="grid gap-1">
-                  <Label className="font-semibold">{s.token.symbol}</Label>
-                  <span className="text-xs text-muted-foreground">
+                  <Label className="font-semibold text-foreground">{s.token.symbol}</Label>
+                  <span className="text-xs text-foreground/70">
                     Chain: {s.chain.name}
                   </span>
                 </div>
-                <div className="text-sm">Min: {s.allowance.minimum}</div>
+                <div className="text-sm font-medium text-foreground bg-primary/10 px-2 py-1 rounded">
+                  Min: {s.allowance.minimum}
+                </div>
               </div>
             </div>
           ))}
@@ -65,12 +67,15 @@ const AllowanceModal = ({ data }: { data: OnAllowanceHookData }) => {
           <div className="flex w-full justify-center items-center gap-4">
             <Button
               variant="destructive"
-              className="w-1/2"
+              className="w-1/2 bg-red-500 hover:bg-red-600 text-white cursor-pointer"
               onClick={handleDeny}
             >
               Deny
             </Button>
-            <Button className="w-1/2" onClick={handleAllowMin}>
+            <Button
+              className="w-1/2 bg-primary hover:bg-primary/90 text-white cursor-pointer"
+              onClick={handleAllowMin}
+            >
               Allow minimum
             </Button>
           </div>

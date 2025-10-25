@@ -8,6 +8,7 @@ import Card from '@/components/ui/card-new';
 import Button from '@/components/ui/button-new';
 import { useAccount } from 'wagmi';
 import { toast } from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 
 interface Milestone {
   id: string;
@@ -26,6 +27,7 @@ interface TeamMember {
 
 export default function CreateCampaign() {
   const { address } = useAccount();
+  const router = useRouter();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -33,6 +35,7 @@ export default function CreateCampaign() {
     goal: '',
     deadline: '',
     chain: 'ethereum',
+    category: 'defi',
     image: null as File | null,
     documents: [] as File[],
   });
@@ -53,6 +56,15 @@ export default function CreateCampaign() {
     { value: 'arbitrum', label: 'Arbitrum', symbol: 'ARB' },
     { value: 'optimism', label: 'Optimism', symbol: 'OP' },
     { value: 'base', label: 'Base', symbol: 'ETH' },
+  ];
+
+  const categories = [
+    { value: 'defi', label: 'DeFi' },
+    { value: 'nft', label: 'NFT' },
+    { value: 'gaming', label: 'Gaming' },
+    { value: 'social', label: 'Social' },
+    { value: 'infrastructure', label: 'Infrastructure' },
+    { value: 'ai-ml', label: 'AI/ML' },
   ];
 
   const handleInputChange = (field: string, value: string | File | File[]) => {
@@ -113,6 +125,7 @@ export default function CreateCampaign() {
       goal: '',
       deadline: '',
       chain: 'ethereum',
+      category: 'defi',
       image: null,
       documents: [],
     });
@@ -132,6 +145,7 @@ export default function CreateCampaign() {
         goal: Number(formData.goal),
         deadline: formData.deadline,
         chain: formData.chain,
+        category: formData.category,
         image: formData.image?.name || '',
         documents: formData.documents.map(doc => doc.name),
         milestones: milestones.filter(m => m.title && m.description),
@@ -152,6 +166,16 @@ export default function CreateCampaign() {
       if (result.success) {
         toast.success(result.message);
         resetForm();
+
+        // Navigate based on funding goal
+        const goalAmount = Number(formData.goal);
+        if (goalAmount > 10000) {
+          // Navigate to DAO page for approval
+          router.push('/dao');
+        } else {
+          // Navigate to campaign page
+          router.push(`/campaigns/${result.data.campaignId}`);
+        }
       } else {
         toast.error('Creation Failed', result.error);
       }
@@ -229,6 +253,25 @@ export default function CreateCampaign() {
                       className="w-full input-neobrutal"
                       placeholder="10000"
                     />
+                    {Number(formData.goal) > 10000 && (
+                      <div className="mt-2 p-3 bg-yellow-50 border-2 border-yellow-200 rounded-lg">
+                        <div className="flex items-start">
+                          <div className="flex-shrink-0">
+                            <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.726-1.36 3.491 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <div className="ml-3">
+                            <h3 className="text-xs font-medium text-yellow-800">
+                              DAO Approval Required
+                            </h3>
+                            <div className="mt-1 text-xs text-yellow-700">
+                              <p>Campaigns with funding goals over $10,000 require DAO verification before going live.</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -262,6 +305,23 @@ export default function CreateCampaign() {
                     ))}
                   </select>
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Category *
+                  </label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => handleInputChange('category', e.target.value)}
+                    className="w-full input-neobrutal"
+                  >
+                    {categories.map(category => (
+                      <option key={category.value} value={category.value}>
+                        {category.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </Card>
 
@@ -281,8 +341,11 @@ export default function CreateCampaign() {
                 {milestones.map((milestone, index) => (
                   <div key={milestone.id} className="border-2 border-foreground/20 rounded-lg p-4">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-semibold text-foreground">Milestone {index + 1}</h3>
-                      {milestones.length > 1 && (
+                      <h3 className="font-semibold text-foreground">
+                        Milestone {index + 1}
+                        {index === 0 && <span className="text-red-500 ml-1">*</span>}
+                      </h3>
+                      {milestones.length > 1 && index > 0 && (
                         <Button
                           type="button"
                           variant="ghost"
@@ -298,7 +361,7 @@ export default function CreateCampaign() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-foreground mb-1">
-                          Title
+                          Title {index === 0 && <span className="text-red-500">*</span>}
                         </label>
                         <input
                           type="text"
@@ -306,18 +369,20 @@ export default function CreateCampaign() {
                           onChange={(e) => handleMilestoneChange(milestone.id, 'title', e.target.value)}
                           className="w-full px-3 py-2 input-neobrutal text-sm"
                           placeholder="Milestone title"
+                          required={index === 0}
                         />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-foreground mb-1">
-                          Amount (USD)
+                          Amount (USD) {index === 0 && <span className="text-red-500">*</span>}
                         </label>
                         <input
                           type="number"
                           value={milestone.amount}
                           onChange={(e) => handleMilestoneChange(milestone.id, 'amount', Number(e.target.value))}
                           className="w-full px-3 py-2 input-neobrutal text-sm"
-                          placeholder="0"
+                          // placeholder="0"
+                          required
                         />
                       </div>
                     </div>
@@ -337,13 +402,14 @@ export default function CreateCampaign() {
 
                     <div className="mt-4">
                       <label className="block text-sm font-medium text-foreground mb-1">
-                        Deadline
+                        Deadline {index === 0 && <span className="text-red-500">*</span>}
                       </label>
                       <input
                         type="date"
                         value={milestone.deadline}
                         onChange={(e) => handleMilestoneChange(milestone.id, 'deadline', e.target.value)}
                         className="w-full px-3 py-2 input-neobrutal text-sm"
+                        required={index === 0}
                       />
                     </div>
                   </div>
@@ -427,7 +493,7 @@ export default function CreateCampaign() {
             </Card> */}
 
             {/* File Uploads */}
-            <Card>
+            {/* <Card>
               <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center">
                 <Upload className="w-6 h-6 mr-3" />
                 Media & Documentation
@@ -495,7 +561,7 @@ export default function CreateCampaign() {
                   </div>
                 </div>
               </div>
-            </Card>
+            </Card> */}
 
             {/* Submit Button */}
             <div className="text-center">

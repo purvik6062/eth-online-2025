@@ -90,13 +90,13 @@ const IntentModal = ({ intent }: { intent: OnIntentHookData }) => {
         }
       }}
     >
-      <DialogContent className="gap-y-3">
+      <DialogContent className="gap-y-3 bg-background border-2 border-foreground/20">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <TrendingUp className="w-5 h-5" />
+          <DialogTitle className="flex items-center gap-2 text-foreground">
+            <TrendingUp className="w-5 h-5 text-primary" />
             Confirm Transaction
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-foreground/70">
             Please review the details of this transaction carefully.
           </DialogDescription>
         </DialogHeader>
@@ -124,7 +124,7 @@ const IntentModal = ({ intent }: { intent: OnIntentHookData }) => {
                         }}
                       />
                       <div className="flex items-center gap-x-2">
-                        <div className="text-foreground font-bold text-center text-sm">
+                        <div className="text-foreground font-bold text-center text-sm bg-primary/10 px-2 py-1 rounded">
                           {source.amount} {intentData.token?.symbol}
                         </div>
                       </div>
@@ -175,7 +175,7 @@ const IntentModal = ({ intent }: { intent: OnIntentHookData }) => {
                         e.currentTarget.style.display = "none";
                       }}
                     />
-                    <div className="text-foreground font-bold text-center text-sm">
+                    <div className="text-foreground font-bold text-center text-sm bg-primary/10 px-2 py-1 rounded">
                       {intentData.destination.amount} {intentData.token?.symbol}
                     </div>
                   </>
@@ -187,14 +187,14 @@ const IntentModal = ({ intent }: { intent: OnIntentHookData }) => {
           {/* Fees Section */}
           {intentData.fees && (
             <div className="space-y-3 mt-6">
-              <div className="p-4 space-y-3">
+              <div className="p-4 space-y-3 bg-secondary/30 border-2 border-foreground/10 rounded-lg">
                 {/* Individual Fees */}
                 <div className="space-y-2 font-semibold">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-sm text-foreground/70">
                       Network Gas
                     </span>
-                    <span className="text-sm">
+                    <span className="text-sm font-medium text-foreground">
                       {formatCost(intentData.fees.caGas ?? "0")}{" "}
                       {intentData.token?.symbol}
                     </span>
@@ -203,10 +203,10 @@ const IntentModal = ({ intent }: { intent: OnIntentHookData }) => {
                   {intentData.fees.solver &&
                     parseFloat(intentData.fees.solver) > 0 && (
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-sm text-foreground/70">
                           Solver Fee
                         </span>
-                        <span className="text-sm">
+                        <span className="text-sm font-medium text-foreground">
                           {formatCost(intentData.fees.solver)}{" "}
                           {intentData.token?.symbol}
                         </span>
@@ -216,10 +216,10 @@ const IntentModal = ({ intent }: { intent: OnIntentHookData }) => {
                   {intentData.fees.protocol &&
                     parseFloat(intentData.fees.protocol) > 0 && (
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-sm text-foreground/70">
                           Protocol Fee
                         </span>
-                        <span className="text-sm font-medium">
+                        <span className="text-sm font-medium text-foreground">
                           {formatCost(intentData.fees.protocol)}{" "}
                           {intentData.token?.symbol}
                         </span>
@@ -229,10 +229,10 @@ const IntentModal = ({ intent }: { intent: OnIntentHookData }) => {
                   {intentData.fees.gasSupplied &&
                     parseFloat(intentData.fees.gasSupplied) > 0 && (
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-sm text-foreground/70">
                           Additional Gas
                         </span>
-                        <span className="text-sm font-medium">
+                        <span className="text-sm font-medium text-foreground">
                           {formatCost(intentData.fees.gasSupplied)}{" "}
                           {intentData.token?.symbol}
                         </span>
@@ -240,10 +240,10 @@ const IntentModal = ({ intent }: { intent: OnIntentHookData }) => {
                     )}
 
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-semibold">
+                    <span className="text-sm font-semibold text-foreground">
                       Total Gas Cost
                     </span>
-                    <span className="text-sm font-bold">
+                    <span className="text-sm font-bold text-foreground">
                       {formatCost(intentData.fees.total ?? "0")}{" "}
                       {intentData.token?.symbol}
                     </span>
@@ -253,7 +253,7 @@ const IntentModal = ({ intent }: { intent: OnIntentHookData }) => {
                 <Separator />
 
                 {/* Total Cost */}
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center bg-primary/10 p-3 rounded-lg">
                   <span className="text-sm font-semibold text-primary">
                     Total Cost
                   </span>
@@ -269,7 +269,7 @@ const IntentModal = ({ intent }: { intent: OnIntentHookData }) => {
 
         <DialogFooter className="w-11/12 pt-4 mx-auto">
           {allowError && (
-            <div className="text-red-500 text-sm bg-red-50 p-3 rounded-md mb-3">
+            <div className="text-red-500 text-sm bg-red-50 border-2 border-red-200 p-3 rounded-lg mb-3">
               {allowError}
             </div>
           )}
@@ -277,7 +277,7 @@ const IntentModal = ({ intent }: { intent: OnIntentHookData }) => {
             <Button
               variant={"destructive"}
               onClick={handleDeny}
-              className="bg-destructive/50 font-semibold w-1/2"
+              className="bg-red-500 hover:bg-red-600 text-white font-semibold w-1/2 cursor-pointer"
             >
               Deny
             </Button>
@@ -285,8 +285,8 @@ const IntentModal = ({ intent }: { intent: OnIntentHookData }) => {
               onClick={handleAllow}
               disabled={isRefreshing}
               className={cn(
-                "font-semibold w-1/2",
-                isRefreshing && "bg-gray-500 cursor-not-allowed"
+                "font-semibold w-1/2 cursor-pointer",
+                isRefreshing ? "bg-gray-500 cursor-not-allowed" : "bg-primary hover:bg-primary/90 text-white"
               )}
             >
               {isRefreshing ? "Refreshing..." : "Allow"}

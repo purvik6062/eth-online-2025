@@ -9,8 +9,9 @@ import Card from '@/components/ui/card-new';
 import Button from '@/components/ui/button-new';
 import ProgressBar from '@/components/ui/ProgressBar';
 import { useAccount } from 'wagmi';
-import { toast } from 'react-hot-toast'; 
+import { toast } from 'react-hot-toast';
 import { useParams, useRouter } from 'next/navigation';
+import ShareModal from '@/components/ui/share-modal';
 
 interface Campaign {
   campaignId: string;
@@ -21,6 +22,7 @@ interface Campaign {
   deadline: string;
   backers: number;
   chain: string;
+  category: string;
   status: 'active' | 'completed' | 'pending_verification' | 'rejected' | 'approved';
   userAddress: string;
   milestones: Array<{
@@ -48,6 +50,7 @@ export default function CampaignDetail() {
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
   const campaignId = useParams().id;
 
   console.log("campaignId:: ", campaignId);
@@ -150,14 +153,19 @@ export default function CampaignDetail() {
                       {campaign.status.toUpperCase()}
                     </span>
                   </div>
-                  <div className="absolute bottom-4 left-4">
+                  <div className="absolute bottom-4 left-4 flex gap-2">
                     <span className="px-2 py-1 bg-background/90 text-foreground text-sm font-medium rounded border border-foreground/20">
                       {campaign.chain}
                     </span>
+                    {campaign?.category && (
+                      <span className="px-2 py-1 bg-primary/90 text-white text-sm font-medium rounded border border-primary/20">
+                        {campaign.category}
+                      </span>
+                    )}
                   </div>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-6 relative">
                   <div>
                     <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
                       {campaign.name}
@@ -167,18 +175,15 @@ export default function CampaignDetail() {
                     </p>
                   </div>
 
-                  <div className="flex flex-wrap gap-4">
-                    <Button variant="outline" size="sm" className="group cursor-pointer">
+                  <div className="flex flex-wrap gap-4 absolute top-0 right-0">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="group cursor-pointer"
+                      onClick={() => setShowShareModal(true)}
+                    >
                       <Share2 className="w-4 h-4 mr-2 group-hover:rotate-12 transition-transform duration-200" />
                       Share
-                    </Button>
-                    <Button variant="outline" size="sm" className="group cursor-pointer">
-                      <Heart className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform duration-200" />
-                      Save
-                    </Button>
-                    <Button variant="outline" size="sm" className="group cursor-pointer">
-                      <ExternalLink className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform duration-200" />
-                      View on Explorer
                     </Button>
                   </div>
                 </div>
@@ -205,14 +210,14 @@ export default function CampaignDetail() {
                     <div key={milestone.id} className="border-2 border-foreground/20 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
                         <h3 className="font-semibold text-foreground">{milestone.title}</h3>
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${milestone.status === 'completed'
+                        {/* <span className={`px-3 py-1 rounded-full text-sm font-medium ${milestone.status === 'completed'
                           ? 'bg-green-100 text-green-800 border border-green-200'
                           : milestone.status === 'in-progress'
                             ? 'bg-blue-100 text-blue-800 border border-blue-200'
                             : 'bg-gray-100 text-gray-800 border border-gray-200'
                           }`}>
                           {milestone?.status?.replace('-', ' ').toUpperCase()}
-                        </span>
+                        </span> */}
                       </div>
                       <p className="text-foreground/70 mb-2">{milestone.description}</p>
                       <div className="flex justify-between items-center text-sm text-foreground/60">
@@ -304,7 +309,7 @@ export default function CampaignDetail() {
                     <span className="text-green-600 font-medium capitalize">{campaign.status}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-foreground/70">Streaming:</span>
+                    <span className="text-foreground/70">Campaign:</span>
                     <span className="text-green-600 font-medium">Active</span>
                   </div>
                   <div className="flex justify-between">
@@ -317,6 +322,14 @@ export default function CampaignDetail() {
           </div>
         </div>
       </main>
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        url={typeof window !== 'undefined' ? window.location.href : ''}
+        title={campaign?.name}
+      />
     </div>
   );
 }

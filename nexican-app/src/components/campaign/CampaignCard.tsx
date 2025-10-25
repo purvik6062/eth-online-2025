@@ -15,6 +15,7 @@ interface Campaign {
   deadline: string;
   backers: number;
   chain: string;
+  category?: string;
   status: 'active' | 'completed' | 'cancelled';
 }
 
@@ -67,10 +68,15 @@ export default function CampaignCard({ campaign }: CampaignCardProps) {
             {campaign.status.toUpperCase()}
           </span>
         </div>
-        <div className="absolute bottom-3 left-3">
+        <div className="absolute bottom-3 left-3 flex gap-2">
           <span className="px-2 py-1 bg-background/90 text-foreground text-xs font-medium rounded border border-foreground/20">
             {campaign.chain}
           </span>
+          {campaign.category && (
+            <span className="px-2 py-1 bg-primary/90 text-white text-xs font-medium rounded border border-primary/20">
+              {campaign.category.toUpperCase()}
+            </span>
+          )}
         </div>
       </div>
 

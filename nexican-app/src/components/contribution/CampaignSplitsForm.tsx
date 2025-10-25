@@ -23,7 +23,7 @@ import {
 import IntentModal from "@/components/blocks/intent-modal";
 import AllowanceModal from "@/components/blocks/allowance-modal";
 import useListenTransaction from "@/hooks/useListenTransactions";
-import { toast } from "react-hot-toast"; 
+import { toast } from "react-hot-toast";
 import { useNotification } from "@blockscout/app-sdk";
 import { useChainId } from "wagmi";
 
@@ -91,6 +91,7 @@ export default function CampaignSplitsForm({
   const [retryFailedTransfers, setRetryFailedTransfers] =
     useState<boolean>(false);
   const [unifiedBalance, setUnifiedBalance] = useState<any[] | null>(null);
+  const [transactionCompleted, setTransactionCompleted] = useState(false);
 
   // Initialize recipients with campaign team members
   useEffect(() => {
@@ -337,6 +338,7 @@ export default function CampaignSplitsForm({
           if (result.success) {
             toast.success("Contribution completed successfully!");
             setTotalAmount("");
+            setTransactionCompleted(true);
             // onSuccess();
           }
         } catch (dbError) {
@@ -399,7 +401,7 @@ export default function CampaignSplitsForm({
 
   return (
     <>
-      <Card className="w-full max-w-3xl bg-transparent">
+      <Card className="w-full max-w-4xl bg-transparent">
         <CardHeader>
           <CardTitle>Campaign Contribution</CardTitle>
           <div className="text-sm text-muted-foreground space-y-1">
@@ -414,7 +416,7 @@ export default function CampaignSplitsForm({
             <div className="text-blue-600">
               Campaign: <span className="font-semibold">{campaign.name}</span>
             </div>
-            <div className="text-blue-600">
+            <div className="text-blue-600 capitalize">
               Target Chain:{" "}
               <span className="font-semibold">{campaign.chain}</span>
             </div>
@@ -569,25 +571,48 @@ export default function CampaignSplitsForm({
       </Card>
       {(intentRefCallback?.current?.intent || submitting) && (
         <div className="mt-3 text-sm space-y-2">
-          <div className="bg-blue-50 p-3 rounded-md">
-            <p className="font-semibold">Transaction Progress</p>
+          <div className="bg-primary/10 border-2 border-primary/20 p-4 rounded-lg">
+            <div className="flex items-center justify-between mb-3">
+              <p className="font-bold text-foreground">Transaction Progress</p>
+              {totalTransfers > 0 && (
+                <span className="text-sm text-foreground/70 bg-primary/20 px-2 py-1 rounded">
+                  {currentTransferIndex}/{totalTransfers}
+                </span>
+              )}
+            </div>
+
             {totalTransfers > 0 && (
-              <p className="font-semibold">
-                Transfer Progress: {currentTransferIndex}/{totalTransfers}
-              </p>
+              <div className="mb-3">
+                <div className="flex justify-between text-xs text-foreground/70 mb-1">
+                  <span>Transfer Progress</span>
+                  <span>{Math.round((currentTransferIndex / totalTransfers) * 100)}%</span>
+                </div>
+                <div className="w-full bg-secondary/50 rounded-full h-2">
+                  <div
+                    className="bg-primary h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${(currentTransferIndex / totalTransfers) * 100}%` }}
+                  ></div>
+                </div>
+              </div>
             )}
+
             {processing && (
-              <>
-                <p className="font-semibold">
-                  Total Steps: {processing?.totalSteps}
-                </p>
-                <p className="font-semibold">
-                  Status: {processing?.statusText}
-                </p>
-                <p className="font-semibold">
-                  Progress: {processing?.currentStep}
-                </p>
-              </>
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs">
+                  <span className="text-foreground/70">Status:</span>
+                  <span className="font-medium text-foreground">{processing?.statusText}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-foreground/70">Progress:</span>
+                  <span className="font-medium text-foreground">{processing?.currentStep}/{processing?.totalSteps}</span>
+                </div>
+                <div className="w-full bg-secondary/50 rounded-full h-1.5">
+                  <div
+                    className="bg-primary h-1.5 rounded-full transition-all duration-300"
+                    style={{ width: `${((processing?.currentStep || 0) / (processing?.totalSteps || 1)) * 100}%` }}
+                  ></div>
+                </div>
+              </div>
             )}
           </div>
         </div>
@@ -608,6 +633,30 @@ export default function CampaignSplitsForm({
           >
             View on Explorer
           </a>
+        </div>
+      )}
+
+      {transactionCompleted && (
+        <div className="mt-4 p-4 bg-green-50 border-2 border-green-200 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-semibold text-green-800">Transaction Completed Successfully!</p>
+                <p className="text-sm text-green-700">Your contribution has been processed.</p>
+              </div>
+            </div>
+            <Button
+              onClick={() => window.location.href = '/manage-payment'}
+              className="bg-green-600 hover:bg-green-700 text-white cursor-pointer"
+            >
+              Manage Payment
+            </Button>
+          </div>
         </div>
       )}
     </>

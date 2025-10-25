@@ -18,10 +18,12 @@ interface Campaign {
   deadline: string;
   backers: number;
   chain: string;
+  category: string;
   status: 'active' | 'completed' | 'pending_verification' | 'rejected' | 'approved';
   daoVerificationRequired: boolean;
   isPublic: boolean;
   createdAt: string;
+  userAddress: string;
   creatorWalletAddress: string;
 }
 
@@ -46,15 +48,54 @@ const chains = [
 
 export default function CampaignsPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [filteredCampaigns, setFilteredCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const campaignsPerPage = 9;
 
+  // Filter states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedChain, setSelectedChain] = useState('all chains');
+
   useEffect(() => {
     fetchCampaigns();
   }, []);
+
+  // Filter campaigns based on search, category, and chain
+  useEffect(() => {
+    let filtered = [...campaigns];
+
+    // Search filter (title and creator address)
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(campaign =>
+        campaign.name.toLowerCase().includes(query) ||
+        (campaign.userAddress && campaign.userAddress.toLowerCase().includes(query)) ||
+        campaign.description.toLowerCase().includes(query)
+      );
+    }
+
+    // Category filter
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(campaign =>
+        campaign.category?.toLowerCase() === selectedCategory.toLowerCase()
+      );
+    }
+
+    // Chain filter
+    if (selectedChain !== 'all chains') {
+      filtered = filtered.filter(campaign =>
+        campaign.chain.toLowerCase() === selectedChain.toLowerCase()
+      );
+    }
+
+    setFilteredCampaigns(filtered);
+    setTotalPages(Math.ceil(filtered.length / campaignsPerPage));
+    setCurrentPage(1); // Reset to first page when filters change
+  }, [campaigns, searchQuery, selectedCategory, selectedChain, campaignsPerPage]);
 
   const fetchCampaigns = async () => {
     try {
@@ -64,6 +105,7 @@ export default function CampaignsPage() {
 
       if (result.success) {
         setCampaigns(result.data);
+        setFilteredCampaigns(result.data);
         setTotalPages(Math.ceil(result.data.length / campaignsPerPage));
       } else {
         setError(result.error);
@@ -79,7 +121,7 @@ export default function CampaignsPage() {
   // Calculate pagination
   const startIndex = (currentPage - 1) * campaignsPerPage;
   const endIndex = startIndex + campaignsPerPage;
-  const currentCampaigns = campaigns.slice(startIndex, endIndex);
+  const currentCampaigns = filteredCampaigns.slice(startIndex, endIndex);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -139,6 +181,8 @@ export default function CampaignsPage() {
                 <input
                   type="text"
                   placeholder="Search campaigns, creators, or keywords..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 border-2 border-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
@@ -149,7 +193,11 @@ export default function CampaignsPage() {
                   <label className="block text-sm font-medium text-foreground mb-2">
                     Category
                   </label>
-                  <select className="w-full px-4 py-3 border-2 border-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50">
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  >
                     {categories.map(category => (
                       <option key={category} value={category.toLowerCase()}>
                         {category}
@@ -160,9 +208,13 @@ export default function CampaignsPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Blockchain
+                    Chain
                   </label>
-                  <select className="w-full px-4 py-3 border-2 border-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50">
+                  <select
+                    value={selectedChain}
+                    onChange={(e) => setSelectedChain(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  >
                     {chains.map(chain => (
                       <option key={chain} value={chain.toLowerCase()}>
                         {chain}
@@ -172,22 +224,23 @@ export default function CampaignsPage() {
                 </div>
               </div>
 
-              {/* Filter Buttons */}
-              <div className="flex flex-wrap gap-2">
-                <Button variant="outline" size="sm">
-                  <Filter className="w-4 h-4 mr-2" />
-                  Active Only
-                </Button>
-                <Button variant="outline" size="sm">
-                  Recently Launched
-                </Button>
-                <Button variant="outline" size="sm">
-                  Almost Funded
-                </Button>
-                <Button variant="outline" size="sm">
-                  High Goal
-                </Button>
-              </div>
+              {/* Clear Filters Button */}
+              {(searchQuery || selectedCategory !== 'all' || selectedChain !== 'all chains') && (
+                <div className="flex justify-end">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSearchQuery('');
+                      setSelectedCategory('all');
+                      setSelectedChain('all chains');
+                    }}
+                    className="cursor-pointer"
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+              )}
             </div>
           </Card>
 
@@ -195,48 +248,69 @@ export default function CampaignsPage() {
           <div className="mb-8">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-foreground">
-                All Campaigns ({campaigns.length})
+                {searchQuery || selectedCategory !== 'all' || selectedChain !== 'all chains'
+                  ? `Filtered Campaigns (${filteredCampaigns.length})`
+                  : `All Campaigns (${campaigns.length})`
+                }
               </h2>
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-foreground/70">Sort by:</span>
-                <select className="px-3 py-1 border border-foreground/30 rounded focus:outline-none focus:ring-1 focus:ring-primary/50">
-                  <option value="newest">Newest</option>
-                  <option value="popular">Most Popular</option>
-                  <option value="ending">Ending Soon</option>
-                  <option value="goal">Goal Amount</option>
-                </select>
-              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {currentCampaigns.map((campaign) => (
-                <div key={campaign.campaignId} className="relative">
-                  <CampaignCard
-                    campaign={{
-                      id: campaign.campaignId,
-                      title: campaign.name,
-                      description: campaign.description,
-                      image: campaign.image || 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=500&h=300&fit=crop',
-                      goal: campaign.goal,
-                      raised: campaign.raised,
-                      deadline: campaign.deadline,
-                      backers: campaign.backers,
-                      chain: campaign.chain,
-                      status: campaign.status as 'active' | 'completed' | 'cancelled'
+            {filteredCampaigns.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">🔍</div>
+                <h3 className="text-xl font-semibold text-foreground mb-2">No campaigns found</h3>
+                <p className="text-foreground/70 mb-4">
+                  {searchQuery || selectedCategory !== 'all' || selectedChain !== 'all chains'
+                    ? 'Try adjusting your filters or search terms'
+                    : 'No campaigns are available at the moment'
+                  }
+                </p>
+                {(searchQuery || selectedCategory !== 'all' || selectedChain !== 'all chains') && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSearchQuery('');
+                      setSelectedCategory('all');
+                      setSelectedChain('all chains');
                     }}
-                  />
-                  {campaign.daoVerificationRequired && campaign.status === 'pending_verification' && (
-                    <div className="absolute top-2 right-2 bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium flex items-center">
-                      <Clock className="w-3 h-3 mr-1" />
-                      Pending DAO
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+                    className="cursor-pointer"
+                  >
+                    Clear Filters
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {currentCampaigns.map((campaign) => (
+                  <div key={campaign.campaignId} className="relative">
+                    <CampaignCard
+                      campaign={{
+                        id: campaign.campaignId,
+                        title: campaign.name,
+                        description: campaign.description,
+                        image: campaign.image || 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=500&h=300&fit=crop',
+                        goal: campaign.goal,
+                        raised: campaign.raised,
+                        deadline: campaign.deadline,
+                        backers: campaign.backers,
+                        chain: campaign.chain,
+                        category: campaign.category,
+                        status: campaign.status as 'active' | 'completed' | 'cancelled'
+                      }}
+                    />
+                    {campaign.daoVerificationRequired && campaign.status === 'pending_verification' && (
+                      <div className="absolute top-2 right-2 bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium flex items-center">
+                        <Clock className="w-3 h-3 mr-1" />
+                        Pending DAO
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Pagination */}
-            {totalPages > 1 && (
+            {filteredCampaigns.length > 0 && totalPages > 1 && (
               <div className="mt-12 flex items-center justify-center">
                 <div className="flex items-center space-x-2">
                   <Button

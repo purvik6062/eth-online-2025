@@ -150,6 +150,7 @@ export default function RecurringPayments({
   const [statusText, setStatusText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [subscriptionCreated, setSubscriptionCreated] = useState(false);
+  const [transactionCompleted, setTransactionCompleted] = useState(false);
 
   // Wagmi hooks for contract interactions
   const {
@@ -289,6 +290,7 @@ export default function RecurringPayments({
       console.log("Subscription created successfully!");
       setStatusText("✅ Subscription created successfully!");
       setSubmitting(false);
+      setTransactionCompleted(true);
       onSuccess();
     }
   }, [isCreateConfirmed, submitting, onSuccess]);
@@ -404,7 +406,7 @@ export default function RecurringPayments({
             <div className="text-blue-600">
               Campaign: <span className="font-semibold">{campaign.name}</span>
             </div>
-            <div className="text-blue-600">
+            <div className="text-blue-600 capitalize">
               Target Chain:{" "}
               <span className="font-semibold">{campaign.chain}</span>
             </div>
@@ -553,20 +555,33 @@ export default function RecurringPayments({
       {/* Transaction Progress */}
       {(intentRefCallback?.current?.intent || submitting) && (
         <div className="mt-3 text-sm space-y-2">
-          <div className="bg-blue-50 p-3 rounded-md">
-            <p className="font-semibold">Transaction Progress</p>
+          <div className="bg-primary/10 border-2 border-primary/20 p-4 rounded-lg">
+            <div className="flex items-center justify-between mb-3">
+              <p className="font-bold text-foreground">Transaction Progress</p>
+              {processing && (
+                <span className="text-sm text-foreground/70 bg-primary/20 px-2 py-1 rounded">
+                  {processing?.currentStep}/{processing?.totalSteps}
+                </span>
+              )}
+            </div>
+
             {processing && (
-              <>
-                <p className="font-semibold">
-                  Total Steps: {processing?.totalSteps}
-                </p>
-                <p className="font-semibold">
-                  Status: {processing?.statusText}
-                </p>
-                <p className="font-semibold">
-                  Progress: {processing?.currentStep}
-                </p>
-              </>
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs">
+                  <span className="text-foreground/70">Status:</span>
+                  <span className="font-medium text-foreground">{processing?.statusText}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-foreground/70">Progress:</span>
+                  <span className="font-medium text-foreground">{processing?.currentStep}/{processing?.totalSteps}</span>
+                </div>
+                <div className="w-full bg-secondary/50 rounded-full h-2">
+                  <div
+                    className="bg-primary h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${((processing?.currentStep || 0) / (processing?.totalSteps || 1)) * 100}%` }}
+                  ></div>
+                </div>
+              </div>
             )}
           </div>
         </div>
@@ -589,6 +604,30 @@ export default function RecurringPayments({
           >
             View on Explorer
           </a>
+        </div>
+      )}
+
+      {transactionCompleted && (
+        <div className="mt-4 p-4 bg-green-50 border-2 border-green-200 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-semibold text-green-800">Recurring Payment Setup Complete!</p>
+                <p className="text-sm text-green-700">Your subscription has been created successfully.</p>
+              </div>
+            </div>
+            <Button
+              onClick={() => window.location.href = '/manage-payment'}
+              className="bg-green-600 hover:bg-green-700 text-white cursor-pointer"
+            >
+              Manage Payment
+            </Button>
+          </div>
         </div>
       )}
     </div>

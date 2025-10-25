@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { Github, Twitter,  Mail } from 'lucide-react';
+import { Github, Twitter, Mail } from 'lucide-react';
+import Image from 'next/image';
 
 export default function Footer() {
   const footerLinks = {
@@ -38,7 +39,7 @@ export default function Footer() {
 
   return (
     <footer className="bg-background border-t-2 border-foreground mt-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center space-x-2 mb-4">
@@ -92,19 +93,9 @@ export default function Footer() {
         {/* Bottom Section */}
         <div className="">
           <div className="flex flex-col md:flex-row justify-between items-center">
+            <Image src="/logo.png" alt="Nexican" width={100} height={100} className="w-48"/>
             <div className="text-foreground/60 text-sm">
               © 2025 Nexican. All rights reserved.
-            </div>
-            <div className="flex space-x-6 mt-4 md:mt-0">
-              <Link href="/privacy" className="text-foreground/60 hover:text-primary transition-colors text-sm">
-                Privacy Policy
-              </Link>
-              <Link href="/terms" className="text-foreground/60 hover:text-primary transition-colors text-sm">
-                Terms of Service
-              </Link>
-              <Link href="/cookies" className="text-foreground/60 hover:text-primary transition-colors text-sm">
-                Cookie Policy
-              </Link>
             </div>
           </div>
         </div>
