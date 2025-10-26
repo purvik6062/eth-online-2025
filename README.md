@@ -1,23 +1,43 @@
 # Nexican - Decentralized Cross-Chain Crowdfunding Platform
 
-A modern, futuristic Next.js + TailwindCSS dashboard for "Nexican", a decentralized cross-chain crowdfunding and payroll streaming platform built using the Avail Nexus SDK and EIP-7702 automation.
+A revolutionary Web3 platform that enables seamless cross-chain crowdfunding and automated payroll streaming using cutting-edge blockchain technology. Built with Avail Nexus SDK and EIP-7702 automation for the future of decentralized funding.
 
-## 🚀 Features
+## 🚀 Core Features
 
-### Core Functionality
+### Cross-Chain Infrastructure
 
-- **Cross-Chain Funding**: Fund projects across multiple blockchains seamlessly
-- **Transparent Escrow**: Smart contract-based escrow with milestone-based releases
-- **EIP-7702 Automation**: Automated payroll streaming and fund distribution
-- **DAO Governance**: Community-driven verification and approval process
+- **Unified Balance Management**: Manage assets across Ethereum, Polygon, Arbitrum, Optimism, and Base
+- **One-Click Cross-Chain Transfers**: Seamless asset movement between blockchains
+- **Real-Time Balance Synchronization**: Instant updates across all supported chains
+- **Avail Nexus SDK Integration**: Advanced cross-chain infrastructure
 
-### Dashboard Sections
+### EIP-7702 Automation
 
-1. **Home/Overview**: Hero section, campaign cards, unified balance summary
-2. **Create Campaign**: Comprehensive form with milestones, team management, and file uploads
-3. **Campaign Detail**: Detailed view with progress tracking, sponsors, and contribution options
-4. **Payroll/Streaming**: Real-time visualization of active fund streams
-5. **DAO Verification Panel**: Review and approve campaign milestones
+- **Recurring Payment Subscriptions**: Automated recurring contributions
+- **Time-Based Delegation**: Smart contract automation for payroll
+- **Account Abstraction**: Enhanced user experience with automated transactions
+- **Smart Contract Automation**: Milestone-based fund distribution
+
+### DAO Governance
+
+- **Community Verification**: Decentralized campaign approval process
+- **Transparent Voting**: Community-driven milestone verification
+- **DAO Member Permissions**: Secure governance system
+- **Campaign Validation**: Automatic review for high-value campaigns (>$10K)
+
+### Smart Distribution System
+
+- **Team Member Splits**: Automatic fund distribution among team members
+- **Flexible Split Options**: Equal, percentage-based, or custom distributions
+- **Real-Time Updates**: Instant balance updates and notifications
+- **Team Management**: Comprehensive team member administration
+
+### Advanced Features
+
+- **Cross-Chain Bridge**: Seamless asset transfers between blockchains
+- **Transaction Explorer**: Real-time monitoring with Blockscout SDK integration
+- **Milestone Tracking**: Progress monitoring and transparent reporting
+- **Document Management**: Secure file uploads and verification
 
 ## 🎨 Design System
 
@@ -39,11 +59,26 @@ A modern, futuristic Next.js + TailwindCSS dashboard for "Nexican", a decentrali
 
 ## 🛠 Technology Stack
 
+### Frontend
+
 - **Framework**: Next.js 15 with App Router
-- **Styling**: TailwindCSS v4
+- **Styling**: TailwindCSS v4 with custom design system
 - **Icons**: Lucide React
-- **Typography**: Geist Sans & Geist Mono
+- **Typography**: Roboto Mono & Archivo Black
 - **TypeScript**: Full type safety
+
+### Blockchain Integration
+
+- **Avail Nexus SDK**: Cross-chain infrastructure and unified balance management
+- **EIP-7702 Protocol**: Account abstraction and automated delegation
+- **Smart Contracts**: Solidity contracts for fund management and automation
+- **Blockscout SDK**: Real-time transaction monitoring and analytics
+
+### Backend & Database
+
+- **MongoDB**: Campaign data, user profiles, and transaction records
+- **API Routes**: Next.js API for campaign management and DAO operations
+- **File Storage**: Document and image upload handling
 
 ## 🚀 Getting Started
 

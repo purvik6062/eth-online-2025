@@ -1,31 +1,39 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useState } from 'react';
-import { Menu, X, Wallet, CircleUserRound, Settings } from 'lucide-react';
-import ConnectWallet from '../blocks/connect-wallet';
-import NexusInitButton from '../nexus-init';
-import Image from 'next/image';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+import {
+  Menu,
+  X,
+  Wallet,
+  CircleUserRound,
+  Settings,
+  HelpCircle,
+} from "lucide-react";
+import ConnectWallet from "../blocks/connect-wallet";
+import NexusInitButton from "../nexus-init";
+import Image from "next/image";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
 
   const navigation = [
-    { name: 'Home', href: '/' },
-    { name: 'Campaigns', href: '/campaigns' },
-    { name: 'Create', href: '/create' },
-    { name: 'Explorer', href: '/explorer' },
+    // { name: "Home", href: "/" },
+    { name: "Campaigns", href: "/campaigns" },
+    { name: "Create", href: "/create" },
+    { name: "Explorer", href: "/explorer" },
     // { name: 'Payroll', href: '/payroll' },
-    { name: 'DAO', href: '/dao' },
+    { name: "DAO", href: "/dao" },
     // { name: 'Profile', href: '/profile' },
-    { name: 'Bridge', href: '/bridge' },
+    { name: "Bridge", href: "/bridge" },
+    { name: "About", href: "/how-it-works" },
   ];
 
   const isActive = (href: string) => {
-    if (href === '/') {
-      return pathname === '/';
+    if (href === "/") {
+      return pathname === "/";
     }
     return pathname.startsWith(href);
   };
@@ -40,7 +48,13 @@ export default function Navbar() {
               <span className="text-white font-bold text-lg">N</span>
             </div>
             <span className="font-bold text-xl text-foreground">Nexican</span> */}
-            <Image src="/logo.png" alt="Nexican" width={100} height={100} className="w-40"/>
+            <Image
+              src="/logo.png"
+              alt="Nexican"
+              width={100}
+              height={100}
+              className="w-40"
+            />
           </Link>
 
           {/* Desktop Navigation */}
@@ -51,8 +65,8 @@ export default function Navbar() {
                 href={item.href}
                 className={`relative px-4 py-2 font-bold text-sm border-2 rounded-lg border-foreground transition-all duration-200 ${
                   isActive(item.href)
-                    ? 'bg-primary text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-0 translate-y-0'
-                    : 'bg-background text-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5'
+                    ? "bg-primary text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-0 translate-y-0"
+                    : "bg-background text-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5"
                 }`}
               >
                 {item.name}
@@ -64,16 +78,26 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-2">
             <ConnectWallet />
             <NexusInitButton />
-            <Link 
-              href="/profile" 
+            <Link
+              href="/profile"
               className={`p-2 rounded-lg border-2 border-foreground bg-background text-foreground hover:bg-primary hover:text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 transition-all duration-200 ${
-                isActive('/profile')
-                  ? 'bg-primary text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
-                  : 'bg-background text-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5'
+                isActive("/profile")
+                  ? "bg-primary text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                  : "bg-background text-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5"
               }`}
             >
               <CircleUserRound className="w-6 h-6" />
             </Link>
+            {/* <Link
+              href="/how-it-works"
+              className={`p-2 rounded-lg border-2 border-foreground bg-background text-foreground hover:bg-primary hover:text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 transition-all duration-200 ${
+                isActive("/how-it-works")
+                  ? "bg-primary text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                  : "bg-background text-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5"
+              }`}
+            >
+              <HelpCircle className="w-6 h-6" />
+            </Link> */}
           </div>
 
           {/* Mobile menu button */}
@@ -82,7 +106,11 @@ export default function Navbar() {
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="p-2 border-2 border-foreground bg-background shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all duration-200"
             >
-              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {isMenuOpen ? (
+                <X className="w-6 h-6" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )}
             </button>
           </div>
         </div>
@@ -97,8 +125,8 @@ export default function Navbar() {
                   href={item.href}
                   className={`block px-4 py-3 transition-all font-bold border-2 border-foreground ${
                     isActive(item.href)
-                      ? 'bg-primary text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
-                      : 'bg-background text-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-1 hover:-translate-y-1 active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5'
+                      ? "bg-primary text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                      : "bg-background text-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-1 hover:-translate-y-1 active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5"
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
@@ -106,15 +134,26 @@ export default function Navbar() {
                 </Link>
               ))}
               <Link
-                href={'/profile'}
+                href={"/profile"}
                 className={`block px-4 py-3 transition-all font-bold border-2 border-foreground ${
-                  isActive('/profile')
-                    ? 'bg-primary text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
-                    : 'bg-background text-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-1 hover:-translate-y-1 active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5'
+                  isActive("/profile")
+                    ? "bg-primary text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                    : "bg-background text-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-1 hover:-translate-y-1 active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5"
                 }`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 Profile
+              </Link>
+              <Link
+                href={"/how-it-works"}
+                className={`block px-4 py-3 transition-all font-bold border-2 border-foreground ${
+                  isActive("/how-it-works")
+                    ? "bg-primary text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                    : "bg-background text-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-1 hover:-translate-y-1 active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5"
+                }`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                How It Works
               </Link>
             </div>
           </div>

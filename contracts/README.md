@@ -1,57 +1,258 @@
-# Sample Hardhat 3 Beta Project (`node:test` and `viem`)
+# Nexican Smart Contracts - EIP-7702 & Cross-Chain Infrastructure
 
-This project showcases a Hardhat 3 Beta project using the native Node.js test runner (`node:test`) and the `viem` library for Ethereum interactions.
+This repository contains the core smart contracts powering Nexican's decentralized cross-chain crowdfunding and payroll streaming platform. Built with Hardhat 3, these contracts implement EIP-7702 delegation, automated fund distribution, and cross-chain asset management.
 
-To learn more about the Hardhat 3 Beta, please visit the [Getting Started guide](https://hardhat.org/docs/getting-started#getting-started-with-hardhat-3). To share your feedback, join our [Hardhat 3 Beta](https://hardhat.org/hardhat3-beta-telegram-group) Telegram group or [open an issue](https://github.com/NomicFoundation/hardhat/issues/new) in our GitHub issue tracker.
+## 🚀 Contract Architecture
 
-## Project Overview
+### Core Contracts
 
-This example project includes:
+#### **EIP7702DelegationManager.sol**
 
-- A simple Hardhat configuration file.
-- Foundry-compatible Solidity unit tests.
-- TypeScript integration tests using [`node:test`](nodejs.org/api/test.html), the new Node.js native test runner, and [`viem`](https://viem.sh/).
-- Examples demonstrating how to connect to different types of networks, including locally simulating OP mainnet.
+- **Purpose**: Implements EIP-7702 delegation functionality for automated payroll streaming
+- **Features**:
+  - Time-based asset delegation
+  - Automated recurring payments
+  - Subscription management
+  - Account abstraction integration
+- **Key Functions**: `createSubscription()`, `executePayment()`, `revokeDelegation()`
 
-## Usage
+#### **EIP7702AuthorizedCode.sol**
+
+- **Purpose**: Authorized code contract for EIP-7702 delegation
+- **Features**:
+  - Secure delegation execution
+  - Permission management
+  - Cross-chain compatibility
+- **Integration**: Works with Avail Nexus SDK for cross-chain operations
+
+#### **MockERC20.sol**
+
+- **Purpose**: Test token for development and testing
+- **Features**: Standard ERC20 implementation with minting capabilities
+- **Usage**: Development, testing, and demonstration purposes
+
+## 🛠 Technology Stack
+
+### Smart Contract Development
+
+- **Hardhat 3**: Advanced development framework with native Node.js test runner
+- **Solidity ^0.8.24**: Latest Solidity compiler with enhanced security features
+- **OpenZeppelin**: Battle-tested security libraries and standards
+- **Viem**: Type-safe Ethereum library for contract interactions
+
+### Testing & Deployment
+
+- **Node.js Test Runner**: Native testing with `node:test`
+- **Foundry Compatibility**: Solidity unit tests with Foundry
+- **TypeScript Integration**: Full type safety for contract interactions
+- **Multi-Network Support**: Ethereum, Polygon, Arbitrum, Optimism, Base
+
+## 🔧 Development & Testing
+
+### Prerequisites
+
+- Node.js 18+
+- npm or yarn
+- Hardhat 3
+- Git
+
+### Installation
+
+```bash
+npm install
+```
 
 ### Running Tests
 
-To run all the tests in the project, execute the following command:
+#### All Tests
 
-```shell
+```bash
 npx hardhat test
 ```
 
-You can also selectively run the Solidity or `node:test` tests:
+#### Selective Testing
 
-```shell
+```bash
+# Solidity unit tests
 npx hardhat test solidity
+
+# TypeScript integration tests
 npx hardhat test nodejs
+
+# Specific test file
+npx hardhat test test/EIP7702DelegationManager.test.ts
 ```
 
-### Make a deployment to Sepolia
+### Contract Deployment
 
-This project includes an example Ignition module to deploy the contract. You can deploy this module to a locally simulated chain or to Sepolia.
+#### Local Development
 
-To run the deployment to a local chain:
-
-```shell
-npx hardhat ignition deploy ignition/modules/Counter.ts
+```bash
+# Deploy to local hardhat network
+npx hardhat ignition deploy ignition/modules/EIP7702FullDeployment.ts
 ```
 
-To run the deployment to Sepolia, you need an account with funds to send the transaction. The provided Hardhat configuration includes a Configuration Variable called `SEPOLIA_PRIVATE_KEY`, which you can use to set the private key of the account you want to use.
+#### Testnet Deployment
 
-You can set the `SEPOLIA_PRIVATE_KEY` variable using the `hardhat-keystore` plugin or by setting it as an environment variable.
+```bash
+# Deploy to Sepolia testnet
+npx hardhat ignition deploy --network sepolia ignition/modules/EIP7702FullDeployment.ts
 
-To set the `SEPOLIA_PRIVATE_KEY` config variable using `hardhat-keystore`:
+# Deploy to Polygon Amoy
+npx hardhat ignition deploy --network polygon ignition/modules/EIP7702FullDeployment.ts
 
-```shell
+# Deploy to Arbitrum Sepolia
+npx hardhat ignition deploy --network arbitrum ignition/modules/EIP7702FullDeployment.ts
+```
+
+### Environment Setup
+
+#### Required Environment Variables
+
+```bash
+# .env file
+SEPOLIA_PRIVATE_KEY=your_private_key_here
+POLYGON_PRIVATE_KEY=your_private_key_here
+ARBITRUM_PRIVATE_KEY=your_private_key_here
+OPTIMISM_PRIVATE_KEY=your_private_key_here
+BASE_PRIVATE_KEY=your_private_key_here
+```
+
+#### Setting Private Keys with Hardhat Keystore
+
+```bash
+# Set private key for Sepolia
 npx hardhat keystore set SEPOLIA_PRIVATE_KEY
+
+# Set private key for Polygon
+npx hardhat keystore set POLYGON_PRIVATE_KEY
+
+# Set private key for Arbitrum
+npx hardhat keystore set ARBITRUM_PRIVATE_KEY
 ```
 
-After setting the variable, you can run the deployment with the Sepolia network:
+## 🚀 Contract Features
 
-```shell
-npx hardhat ignition deploy --network sepolia ignition/modules/Counter.ts
+### EIP-7702 Delegation Manager
+
+- **Automated Payroll**: Time-based delegation for recurring payments
+- **Subscription Management**: Create and manage payment subscriptions
+- **Cross-Chain Support**: Works with Avail Nexus SDK
+- **Security**: ReentrancyGuard and access control
+
+### Key Functions
+
+```solidity
+// Create a new subscription
+function createSubscription(
+    address recipient,
+    address token,
+    uint256 amountPerInterval,
+    uint256 totalAmount,
+    uint256 startTime,
+    uint256 interval,
+    uint256 periods
+) external payable
+
+// Execute recurring payment
+function executePayment(uint256 subscriptionId) external
+
+// Revoke delegation
+function revokeDelegation(uint256 delegationId) external
 ```
+
+## 🔒 Security Features
+
+### OpenZeppelin Integration
+
+- **Ownable**: Contract ownership management
+- **ReentrancyGuard**: Protection against reentrancy attacks
+- **SafeERC20**: Safe token transfers
+- **Access Control**: Role-based permissions
+
+### Security Best Practices
+
+- **Input Validation**: Comprehensive parameter checking
+- **Event Logging**: Transparent transaction logging
+- **Error Handling**: Clear error messages and revert conditions
+- **Gas Optimization**: Efficient contract design
+
+## 📊 Deployment Addresses
+
+### Testnet Deployments
+
+- **Sepolia**: [Contract Addresses]
+- **Polygon Amoy**: [Contract Addresses]
+- **Arbitrum Sepolia**: [Contract Addresses]
+- **Optimism Sepolia**: [Contract Addresses]
+- **Base Sepolia**: [Contract Addresses]
+
+### Mainnet Deployments
+
+- **Ethereum**: [Contract Addresses]
+- **Polygon**: [Contract Addresses]
+- **Arbitrum**: [Contract Addresses]
+- **Optimism**: [Contract Addresses]
+- **Base**: [Contract Addresses]
+
+## 🔗 Integration with Nexican Platform
+
+### Frontend Integration
+
+- **Web3 Provider**: Connect to deployed contracts
+- **Avail Nexus SDK**: Cross-chain contract interactions
+- **Real-time Updates**: Event listening and state management
+- **User Interface**: Seamless contract interaction
+
+### API Integration
+
+- **Contract Events**: Real-time transaction monitoring
+- **State Management**: Contract state synchronization
+- **Transaction Handling**: Gas optimization and error handling
+- **Cross-Chain Operations**: Multi-network contract calls
+
+## 📚 Documentation
+
+### Contract Documentation
+
+- **NatSpec Comments**: Comprehensive inline documentation
+- **Function Descriptions**: Detailed parameter and return value documentation
+- **Event Documentation**: Event parameter descriptions
+- **Usage Examples**: Code examples for common operations
+
+### Integration Guides
+
+- **Frontend Integration**: How to connect contracts to the UI
+- **API Integration**: Backend contract interaction patterns
+- **Testing Guide**: Comprehensive testing strategies
+- **Deployment Guide**: Step-by-step deployment instructions
+
+## 🤝 Contributing
+
+### Development Workflow
+
+1. Fork the repository
+2. Create a feature branch
+3. Write tests for new functionality
+4. Implement the feature
+5. Run the test suite
+6. Submit a pull request
+
+### Code Standards
+
+- **Solidity Style Guide**: Follow Solidity style conventions
+- **Test Coverage**: Maintain high test coverage
+- **Documentation**: Update documentation for new features
+- **Security Review**: All contracts undergo security review
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🔗 Links
+
+- [Hardhat 3 Documentation](https://hardhat.org/docs/getting-started#getting-started-with-hardhat-3)
+- [EIP-7702 Specification](https://eips.ethereum.org/EIPS/eip-7702)
+- [OpenZeppelin Contracts](https://docs.openzeppelin.com/contracts/)
+- [Viem Documentation](https://viem.sh/)
+- [Nexican Platform](https://nexican.io)
