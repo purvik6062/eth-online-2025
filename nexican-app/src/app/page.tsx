@@ -39,7 +39,7 @@ const features = [
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background font-sans">
       <main>
         {/* Hero Section */}
         <section className="relative pt-16 pb-10 px-4 sm:px-6 lg:px-8 overflow-hidden">
@@ -50,7 +50,7 @@ export default function Home() {
               <div className="absolute -top-5 -right-10 w-16 h-16 bg-primary-light/10 rounded-full hero-float"></div>
               <div className="absolute top-20 left-1/4 w-12 h-12 bg-accent/10 rounded-full hero-float"></div>
 
-              <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent">
+              <h1 className="tagline-hero leading-tight">
                 Fund across chains, effortlessly
               </h1>
 
@@ -121,7 +121,7 @@ export default function Home() {
         <section className="py-16 px-4 sm:px-6 lg:px-8 bg-secondary/30">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
                 Why Choose Nexican?
               </h2>
               <p className="text-lg text-foreground/70 max-w-2xl mx-auto">
@@ -137,7 +137,7 @@ export default function Home() {
                     <div className="w-12 h-12 gradient-primary rounded-lg flex items-center justify-center mx-auto mb-4">
                       <Icon className="w-6 h-6 text-white" />
                     </div>
-                    <h3 className="font-semibold text-lg text-foreground mb-2">
+                    <h3 className="font-display font-semibold text-lg text-foreground mb-2">
                       {feature.title}
                     </h3>
                     <p className="text-foreground/70 text-sm">
@@ -213,7 +213,7 @@ export default function Home() {
         <section className="py-16 px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto text-center">
             <Card className="bg-primary gradient-secondary">
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
                 Ready to Launch Your Campaign?
               </h2>
               <p className="text-lg text-foreground/70 mb-8">

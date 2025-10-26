@@ -16,13 +16,13 @@ export default function BridgePage() {
   return (
     <div className="font-sans flex flex-col items-center min-h-screen p-8 gap-y-6">
       <div className="flex items-center justify-between w-full max-w-4xl">
-        <h1 className="text-2xl font-semibold">🌉 Bridge & Transfer</h1>
+        <h1 className="font-display text-2xl font-semibold">🌉 Bridge & Transfer</h1>
       </div>
 
-      {nexusSDK?.isInitialized() && 
-      <div className="w-full max-w-4xl">
-      <UnifiedBalance />
-      </div>
+      {nexusSDK?.isInitialized() &&
+        <div className="w-full max-w-4xl">
+          <UnifiedBalance />
+        </div>
       }
 
       {!nexusSDK?.isInitialized() ? (

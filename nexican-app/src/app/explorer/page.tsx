@@ -46,10 +46,10 @@ export default function ActivitiesPage() {
 
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Explorer</h1>
+          <h1 className="font-display text-3xl font-bold text-foreground mb-2">Explorer</h1>
           <p className="text-muted-foreground">
             View your transaction history and activity across the blockchain
           </p>
@@ -60,7 +60,7 @@ export default function ActivitiesPage() {
             <div className="mx-auto w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-4">
               <Wallet className="w-6 h-6 text-muted-foreground" />
             </div>
-            <h2 className="text-xl font-bold text-foreground mb-2">Connect Your Wallet</h2>
+            <h2 className="font-display text-xl font-bold text-foreground mb-2">Connect Your Wallet</h2>
             <p className="text-muted-foreground mb-4">
               Please connect your wallet to view your transaction activities
             </p>
@@ -73,7 +73,7 @@ export default function ActivitiesPage() {
             <div className="mx-auto w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mb-4">
               <AlertCircle className="w-6 h-6 text-orange-600" />
             </div>
-            <h2 className="text-xl font-bold text-foreground mb-2">Chain Not Supported</h2>
+            <h2 className="font-display text-xl font-bold text-foreground mb-2">Chain Not Supported</h2>
             <p className="text-muted-foreground mb-4">
               The current chain ({currentChainInfo.name}) is not supported by Blockscout
             </p>

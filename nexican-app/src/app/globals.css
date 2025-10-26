@@ -25,8 +25,40 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
   line-height: 1.6;
+  font-family: var(--font-inter), system-ui, sans-serif;
+}
+
+/* Ensure Inter font is applied to all text elements */
+p,
+span,
+div,
+a,
+button,
+input,
+textarea,
+select,
+label {
+  font-family: var(--font-inter), system-ui, sans-serif;
+}
+
+/* Display font for headings */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-archivo-black), system-ui, sans-serif;
+}
+
+/* Force font application for specific classes */
+.font-display {
+  font-family: var(--font-archivo-black), system-ui, sans-serif !important;
+}
+
+.font-sans {
+  font-family: var(--font-inter), system-ui, sans-serif !important;
 }
 
 /* Custom scrollbar */
@@ -126,6 +158,7 @@ body {
 /* Enhanced tagline styles */
 .tagline-hero {
   @apply text-4xl md:text-6xl font-bold text-foreground mb-6;
+  font-family: var(--font-archivo-black), system-ui, sans-serif;
   background: linear-gradient(135deg, #5f7161 0%, #6d8b74 50%, #4a5568 100%);
   background-clip: text;
   -webkit-background-clip: text;

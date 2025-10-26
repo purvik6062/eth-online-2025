@@ -188,12 +188,12 @@ export default function CreateCampaign() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background font-sans">
 
       <main className="py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
+            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
               Create Your Campaign
             </h1>
             <p className="text-lg text-foreground/70 max-w-2xl mx-auto mb-6">
@@ -204,7 +204,7 @@ export default function CreateCampaign() {
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Basic Information */}
             <Card>
-              <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center">
+              <h2 className="font-display text-2xl font-bold text-foreground mb-6 flex items-center">
                 <FileText className="w-6 h-6 mr-3" />
                 Campaign Details
               </h2>

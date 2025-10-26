@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Archivo_Black, Roboto_Mono } from "next/font/google";
+import { Archivo_Black, Inter } from "next/font/google";
 import "./globals.css";
 import Web3Provider from "@/providers/Web3Provider";
 import { Toaster } from "react-hot-toast";
@@ -16,14 +16,15 @@ import Footer from "@/components/layout/Footer";
 //   subsets: ["latin"],
 // });
 
-const robotoMono = Roboto_Mono({
-  variable: "--font-inter",
-  subsets: ["latin"],
-});
-
 const archivoBlack = Archivo_Black({
   variable: "--font-archivo-black",
   weight: ["400"],
+  subsets: ["latin"],
+});
+
+const inter = Inter({
+  variable: "--font-inter",
+  weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
 });
 
@@ -40,7 +41,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${robotoMono.variable} ${archivoBlack.variable} antialiased`}
+        className={`${archivoBlack.variable} ${inter.variable} antialiased`}
       >
         <Web3Provider>
           <Navbar />

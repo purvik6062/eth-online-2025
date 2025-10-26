@@ -28,11 +28,11 @@ interface Campaign {
   chain: string;
   category: string;
   status:
-    | "active"
-    | "completed"
-    | "pending_verification"
-    | "rejected"
-    | "approved";
+  | "active"
+  | "completed"
+  | "pending_verification"
+  | "rejected"
+  | "approved";
   daoVerificationRequired: boolean;
   isPublic: boolean;
   createdAt: string;
@@ -153,7 +153,7 @@ export default function CampaignsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background font-sans">
         <main className="py-8 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
             <div className="text-center py-12">
@@ -168,7 +168,7 @@ export default function CampaignsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background font-sans">
         <main className="py-8 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
             <div className="text-center py-12">
@@ -182,12 +182,12 @@ export default function CampaignsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background font-sans">
       <main className="py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
+            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
               Explore Campaigns
             </h1>
             <p className="text-lg text-foreground/70 max-w-2xl mx-auto">
@@ -205,17 +205,17 @@ export default function CampaignsPage() {
                   <label className="block text-sm font-medium text-foreground mb-2">
                     Search
                   </label>
-                  <div className="relative"> 
+                  <div className="relative">
 
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground/40 w-5 h-5" />
-                  <input
-                    type="text"
-                    placeholder="Search campaigns..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border-2 border-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground/40 w-5 h-5" />
+                    <input
+                      type="text"
+                      placeholder="Search campaigns..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 border-2 border-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
                     />
-                    </div>
+                  </div>
                 </div>
 
                 {/* Filters */}
@@ -259,21 +259,21 @@ export default function CampaignsPage() {
               {(searchQuery ||
                 selectedCategory !== "all" ||
                 selectedChain !== "all chains") && (
-                <div className="flex justify-end">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setSearchQuery("");
-                      setSelectedCategory("all");
-                      setSelectedChain("all chains");
-                    }}
-                    className="cursor-pointer"
-                  >
-                    Clear Filters
-                  </Button>
-                </div>
-              )}
+                  <div className="flex justify-end">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSearchQuery("");
+                        setSelectedCategory("all");
+                        setSelectedChain("all chains");
+                      }}
+                      className="cursor-pointer"
+                    >
+                      Clear Filters
+                    </Button>
+                  </div>
+                )}
             </div>
           </Card>
 
@@ -282,8 +282,8 @@ export default function CampaignsPage() {
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-foreground">
                 {searchQuery ||
-                selectedCategory !== "all" ||
-                selectedChain !== "all chains"
+                  selectedCategory !== "all" ||
+                  selectedChain !== "all chains"
                   ? `Filtered Campaigns (${filteredCampaigns.length})`
                   : `All Campaigns (${campaigns.length})`}
               </h2>
@@ -297,26 +297,26 @@ export default function CampaignsPage() {
                 </h3>
                 <p className="text-foreground/70 mb-4">
                   {searchQuery ||
-                  selectedCategory !== "all" ||
-                  selectedChain !== "all chains"
+                    selectedCategory !== "all" ||
+                    selectedChain !== "all chains"
                     ? "Try adjusting your filters or search terms"
                     : "No campaigns are available at the moment"}
                 </p>
                 {(searchQuery ||
                   selectedCategory !== "all" ||
                   selectedChain !== "all chains") && (
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setSearchQuery("");
-                      setSelectedCategory("all");
-                      setSelectedChain("all chains");
-                    }}
-                    className="cursor-pointer"
-                  >
-                    Clear Filters
-                  </Button>
-                )}
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setSearchQuery("");
+                        setSelectedCategory("all");
+                        setSelectedChain("all chains");
+                      }}
+                      className="cursor-pointer"
+                    >
+                      Clear Filters
+                    </Button>
+                  )}
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
