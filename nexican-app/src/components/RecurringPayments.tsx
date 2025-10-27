@@ -122,7 +122,7 @@ const CHAIN_CONFIG: Record<
   optimismSepolia: {
     id: 11155420,
     name: "Optimism Sepolia",
-    usdc: "0x5fd84259d66Cd46123540766Be93DFE2D0b02CC2",
+    usdc: "0x5fd84259d66Cd46123540766Be93DFE6D43130D7",
     delegationManager: "0x32dDe10DBD35910Be56CdcDc47353488F798b8bb",
   },
 };

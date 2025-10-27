@@ -140,26 +140,6 @@ npx hardhat keystore set ARBITRUM_PRIVATE_KEY
 - **Cross-Chain Support**: Works with Avail Nexus SDK
 - **Security**: ReentrancyGuard and access control
 
-### Key Functions
-
-```solidity
-// Create a new subscription
-function createSubscription(
-    address recipient,
-    address token,
-    uint256 amountPerInterval,
-    uint256 totalAmount,
-    uint256 startTime,
-    uint256 interval,
-    uint256 periods
-) external payable
-
-// Execute recurring payment
-function executePayment(uint256 subscriptionId) external
-
-// Revoke delegation
-function revokeDelegation(uint256 delegationId) external
-```
 
 ## 🔒 Security Features
 
@@ -181,19 +161,27 @@ function revokeDelegation(uint256 delegationId) external
 
 ### Testnet Deployments
 
-- **Sepolia**: [Contract Addresses]
-- **Polygon Amoy**: [Contract Addresses]
-- **Arbitrum Sepolia**: [Contract Addresses]
-- **Optimism Sepolia**: [Contract Addresses]
-- **Base Sepolia**: [Contract Addresses]
+### Ethereum Sepolia
 
-### Mainnet Deployments
+- **EIP7702AuthorizedCode:** [`0xE943420E8A5D3C2BBb3EFeC6141926FA3fE0872f`](https://eth-sepolia.blockscout.com/address/0xE943420E8A5D3C2BBb3EFeC6141926FA3fE0872f?tab=contract)
+- **EIP7702DelegationManager:** [`0x9E89b0F0049e22E679C3A3bE4938DF1dCc08ec15`](https://eth-sepolia.blockscout.com/address/0x9E89b0F0049e22E679C3A3bE4938DF1dCc08ec15?tab=contract)
 
-- **Ethereum**: [Contract Addresses]
-- **Polygon**: [Contract Addresses]
-- **Arbitrum**: [Contract Addresses]
-- **Optimism**: [Contract Addresses]
-- **Base**: [Contract Addresses]
+### Arbitrum Sepolia
+
+- **EIP7702AuthorizedCode:** [`0x09Fd3192541003E64691B58771fD0ec1222B9Fd6`](https://arbitrum-sepolia.blockscout.com/address/0x09Fd3192541003E64691B58771fD0ec1222B9Fd6?tab=contract)
+- **EIP7702DelegationManager:** [`0x9edE152D33D7450E08B8eAec6bDA5E7D1F98F45d`](https://arbitrum-sepolia.blockscout.com/address/0x9edE152D33D7450E08B8eAec6bDA5E7D1F98F45d?tab=contract)
+
+### Optimism Sepolia
+
+- **EIP7702AuthorizedCode:** [`0xea4b19dfE41e62296CDC8aA41aD86261a4eb371B`](https://testnet-explorer.optimism.io/address/0xea4b19dfE41e62296CDC8aA41aD86261a4eb371B?tab=contract)
+- **EIP7702DelegationManager:** [`0x32dDe10DBD35910Be56CdcDc47353488F798b8bb`](https://testnet-explorer.optimism.io/address/0x32dDe10DBD35910Be56CdcDc47353488F798b8bb?tab=contract)
+
+### Base Sepolia
+
+- **EIP7702AuthorizedCode:** [`0x566298d3F1351d8e3bd7862855D51579d138d849`](https://base-sepolia.blockscout.com/address/0x566298d3F1351d8e3bd7862855D51579d138d849?tab=contract)
+- **EIP7702DelegationManager:** [`0x5C009421fb32B13Ac739E1fe95a4f6Ff4C132882`](https://base-sepolia.blockscout.com/address/0x5C009421fb32B13Ac739E1fe95a4f6Ff4C132882?tab=contract)
+
+
 
 ## 🔗 Integration with Nexican Platform
 
@@ -255,4 +243,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [EIP-7702 Specification](https://eips.ethereum.org/EIPS/eip-7702)
 - [OpenZeppelin Contracts](https://docs.openzeppelin.com/contracts/)
 - [Viem Documentation](https://viem.sh/)
-- [Nexican Platform](https://nexican.io)
+- [Nexican Platform](https://nexican.vercel.app)
